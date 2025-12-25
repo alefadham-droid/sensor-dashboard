@@ -333,3 +333,113 @@ function updateTable(data) {
     const recentData = data.slice(-15).reverse();
     let tableHTML = '';
     
+    recentData.forEach((item, index) => {
+        const date = item.timestamp ? 
+            new Date(item.timestamp * 1000) : 
+            new Date();
+        
+        const timeAgo = getTimeAgo(item.timestamp);
+        const rowClass = index % 2 === 0 ? 'even' : 'odd';
+        
+        tableHTML += `
+            <tr class="${rowClass}">
+                <td>
+                    <i class="fas fa-calendar-day"></i>
+                    ${date.toLocaleDateString('fa-IR')}
+                    <br>
+                    <small><i class="fas fa-clock"></i> ${date.toLocaleTimeString('fa-IR')}</small>
+                </td>
+                <td>
+                    <span class="temp-badge">${item.temperature.toFixed(1)} °C</span>
+                </td>
+                <td>
+                    <span class="hum-badge">${item.humidity.toFixed(1)} %</span>
+                </td>
+                <td>
+                    <i class="fas fa-history"></i>
+                    ${timeAgo}
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = tableHTML;
+    
+    // اضافه کردن استایل‌های داینامیک
+    const style = document.createElement('style');
+    style.textContent = `
+        .temp-badge {
+            background: rgba(255, 107, 107, 0.1);
+            color: #ff6b6b;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            border: 2px solid rgba(255, 107, 107, 0.3);
+        }
+        
+        .hum-badge {
+            background: rgba(78, 205, 196, 0.1);
+            color: #4ecdc4;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            border: 2px solid rgba(78, 205, 196, 0.3);
+        }
+        
+        .even {
+            background: rgba(0, 0, 0, 0.01);
+        }
+        
+        .odd {
+            background: white;
+        }
+        
+        .error-row td {
+            color: #f72585;
+            text-align: center;
+            padding: 40px !important;
+        }
+        
+        .error-row i {
+            margin-left: 10px;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // به‌روزرسانی تعداد رکوردها
+    document.getElementById('recordCount').textContent = data.length;
+}
+
+// محاسبه زمان گذشته
+function getTimeAgo(timestamp) {
+    if (!timestamp) return 'نامشخص';
+    
+    const now = Math.floor(Date.now() / 1000);
+    const diff = now - timestamp;
+    
+    if (diff < 60) return `${diff} ثانیه پیش`;
+    if (diff < 3600) return `${Math.floor(diff / 60)} دقیقه پیش`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} ساعت پیش`;
+    return `${Math.floor(diff / 86400)} روز پیش`;
+}
+
+// بارگذاری فونت فارسی
+function loadPersianFont() {
+    const link = document.createElement('link');
+    link.href = 'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+    
+    document.body.style.fontFamily = 'Vazirmatn, Vazir, sans-serif';
+}
+
+// شروع برنامه
+window.onload = function() {
+    loadPersianFont();
+    initializeDashboard();
+    
+    // اضافه کردن تاریخ در فوتر
+    const now = new Date();
+    const footer = document.querySelector('footer p');
+    footer.innerHTML += ` | ${now.toLocaleDateString('fa-IR')}`;
+};
