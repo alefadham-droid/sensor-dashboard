@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد سنسور ESP32</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <i class="fas fa-microchip icon"></i>
+                <div>
+                    <h1>داشبورد سنسور ESP32</h1>
+                    <p class="subtitle">📡 داده‌های زنده از ESP32 به هات‌اسپات موبایل</p>
+                </div>
+            </div>
+            <div class="status">
+                <span id="connectionStatus" class="status-offline">
+                    <i class="fas fa-circle"></i> در حال اتصال...
+                </span>
+                <span id="lastUpdateTime">--:--</span>
+            </div>
+        </header>
+        
+        <main>
+            <!-- بخش آمار لحظه‌ای -->
+            <section class="live-stats">
+                <h2><i class="fas fa-chart-line"></i> آمار لحظه‌ای</h2>
+                <div class="stats-grid">
+                    <div class="stat-card temp-card">
+                        <div class="stat-header">
+                            <i class="fas fa-thermometer-half"></i>
+                            <h3>دمای فعلی</h3>
+                        </div>
+                        <div class="stat-value" id="currentTemp">--</div>
+                        <div class="stat-unit">°C</div>
+                        <div class="stat-trend" id="tempTrend">
+                            <i class="fas fa-minus"></i> تغییرات
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card hum-card">
+                        <div class="stat-header">
+                            <i class="fas fa-tint"></i>
+                            <h3>رطوبت فعلی</h3>
+                        </div>
+                        <div class="stat-value" id="currentHum">--</div>
+                        <div class="stat-unit">%</div>
+                        <div class="stat-trend" id="humTrend">
+                            <i class="fas fa-minus"></i> تغییرات
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card time-card">
+                        <div class="stat-header">
+                            <i class="fas fa-clock"></i>
+                            <h3>آخرین بروزرسانی</h3>
+                        </div>
+                        <div class="stat-value" id="lastUpdate">--:--</div>
+                        <div class="stat-unit">ثانیه پیش</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-sync-alt"></i> هر 30 ثانیه
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- بخش نمودارها -->
+            <section class="charts-section">
+                <h2><i class="fas fa-chart-area"></i> نمودارهای تاریخی</h2>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-fire"></i> نمودار دما</h3>
+                            <div class="chart-legend">
+                                <span class="legend-item temp-legend">
+                                    <i class="fas fa-square"></i> دما (°C)
+                                </span>
+                            </div>
+                        </div>
+                        <canvas id="tempChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-water"></i> نمودار رطوبت</h3>
+                            <div class="chart-legend">
+                                <span class="legend-item hum-legend">
+                                    <i class="fas fa-square"></i> رطوبت (%)
+                                </span>
+                            </div>
+                        </div>
+                        <canvas id="humChart"></canvas>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- بخش جدول داده‌ها -->
+            <section class="data-section">
+                <h2><i class="fas fa-table"></i> تاریخچه داده‌ها</h2>
+                <div class="table-container">
+                    <table id="sensorTable">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-calendar-alt"></i> تاریخ و زمان</th>
+                                <th><i class="fas fa-thermometer-half"></i> دما (°C)</th>
+                                <th><i class="fas fa-tint"></i> رطوبت (%)</th>
+                                <th><i class="fas fa-history"></i> مدت گذشته</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- داده‌ها اینجا نمایش داده می‌شوند -->
+                            <tr class="loading-row">
+                                <td colspan="4">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    در حال بارگذاری داده‌ها...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="table-info">
+                        <div class="info-item">
+                            <i class="fas fa-database"></i>
+                            <span>تعداد رکوردها: <span id="recordCount">0</span></span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>آخرین رفرش: <span id="refreshTime">--:--</span></span>
+                        </div>
+                        <button onclick="loadSensorData()" class="refresh-btn">
+                            <i class="fas fa-redo"></i> رفرش داده‌ها
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- بخش راهنما -->
+            <section class="help-section">
+                <details>
+                    <summary>
+                        <i class="fas fa-question-circle"></i> راهنمای نصب و استفاده
+                    </summary>
+                    <div class="help-content">
+                        <h3>📋 مراحل راه‌اندازی:</h3>
+                        <ol>
+                            <li>✅ حساب GitHub ساختید (انجام شد)</li>
+                            <li>✅ مخزن پروژه ساختید (انجام شد)</li>
+                            <li>🔜 GitHub Pages را فعال کنید</li>
+                            <li>🔜 توکن دسترسی بسازید</li>
+                            <li>🔜 کد ESP32 را آپلود کنید</li>
+                        </ol>
+                        
+                        <h3>🔗 آدرس داشبورد شما:</h3>
+                        <code id="dashboardUrl">در مرحله بعد ساخته می‌شود</code>
+                        
+                        <div class="alert">
+                            <i class="fas fa-info-circle"></i>
+                            <p>پس از تکمیل مراحل، داده‌های سنسور به طور خودکار در این صفحه نمایش داده می‌شوند.</p>
+                        </div>
+                    </div>
+                </details>
+            </section>
+        </main>
+        
+        <footer>
+            <p>ساخته شده با <i class="fas fa-heart"></i> برای پروژه سنسور ESP32</p>
+            <p class="footer-info">
+                <i class="fas fa-code-branch"></i> مخزن GitHub: 
+                <a href="#" id="repoLink">sensor-dashboard</a>
+            </p>
+        </footer>
+    </div>
+    
+    <!-- اسکریپت‌ها -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
