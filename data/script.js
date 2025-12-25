@@ -8,9 +8,20 @@ let updateInterval;
 // تنظیمات اولیه
 function initializeDashboard() {
     // تنظیم آدرس داده‌ها بر اساس نام کاربری
-    const username = window.location.hostname.split('.')[0];
-    const repoName = 'sensor-dashboard';
-    DATA_URL = `https://raw.githubusercontent.com/${username}/${repoName}/main/data/sensor-data.json`;
+   // تنظیمات اولیه
+function initializeDashboard() {
+    // تنظیم آدرس داده‌ها - به صورت ثابت
+    DATA_URL = 'https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/sensor-data.json';
+    
+    // نمایش آدرس داشبورد
+    document.getElementById('dashboardUrl').textContent = 
+        'https://alefadham-droid.github.io/sensor-dashboard/';
+    
+    // لینک مخزن
+    document.getElementById('repoLink').href = 
+        'https://github.com/alefadham-droid/sensor-dashboard';
+    
+    // بقیه کدها بدون تغییر...
     
     // نمایش آدرس داشبورد
     document.getElementById('dashboardUrl').textContent = 
