@@ -2,19 +2,29 @@
   {
     "timestamp": 1735141200,
     "temperature": 25.5,
-    "humidity": 60.2,
-    "sensor": "AHT20"
+    "humidity": 60.5,
+    "sensor": "AHT20",
+    "counter": 1
+  },
+  {
+    "timestamp": 1735141230,
+    "temperature": 25.6,
+    "humidity": 60.3,
+    "sensor": "AHT20",
+    "counter": 2
   },
   {
     "timestamp": 1735141260,
     "temperature": 25.7,
-    "humidity": 60.0,
-    "sensor": "AHT20"
+    "humidity": 60.1,
+    "sensor": "AHT20",
+    "counter": 3
   },
   {
-    "timestamp": 1735141320,
-    "temperature": 25.6,
-    "humidity": 59.8,
-    "sensor": "AHT20"
+    "timestamp": 1735141290,
+    "temperature": 25.8,
+    "humidity": 59.9,
+    "sensor": "AHT20",
+    "counter": 4
   }
 ]
