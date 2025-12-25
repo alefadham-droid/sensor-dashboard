@@ -1,4 +1,4 @@
-// آدرس فایل داده‌ها - این آدرس را بعداً باید تغییر دهید
+// آدرس فایل داده‌ها
 let DATA_URL = '';
 let tempChart = null;
 let humChart = null;
@@ -7,39 +7,14 @@ let updateInterval;
 
 // تنظیمات اولیه
 function initializeDashboard() {
-    // تنظیم آدرس داده‌ها بر اساس نام کاربری
-  // تنظیمات اولیه
-function initializeDashboard() {
-    // تنظیم آدرس داده‌ها - نسخه بهبود یافته
-    let username = 'alefadham-droid'; // مقدار ثابت بگذارید
-    const hostParts = window.location.hostname.split('.');
-    
-    // اگر روی GitHub Pages هستیم
-    if (hostParts.length >= 3 && hostParts[1] === 'github') {
-        username = hostParts[0];
-    }
-    
-    const repoName = 'sensor-dashboard';
-    DATA_URL = `https://raw.githubusercontent.com/${username}/${repoName}/main/data/sensor-data.json`;
-    
-    // بقیه کدها...
-    // نمایش آدرس داشبورد
-    document.getElementById('dashboardUrl').textContent = 
-        'https://alefadham-droid.github.io/sensor-dashboard/';
-    
-    // لینک مخزن
-    document.getElementById('repoLink').href = 
-        'https://github.com/alefadham-droid/sensor-dashboard';
-    
-    // بقیه کدها بدون تغییر...
+    // تنظیم آدرس داده‌ها - نسخه ساده و ثابت
+    DATA_URL = 'https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/sensor-data.json';
     
     // نمایش آدرس داشبورد
-    document.getElementById('dashboardUrl').textContent = 
-        `https://${username}.github.io/${repoName}/`;
+    document.getElementById('dashboardUrl').textContent = 'https://alefadham-droid.github.io/sensor-dashboard/';
     
     // لینک مخزن
-    document.getElementById('repoLink').href = 
-        `https://github.com/${username}/${repoName}`;
+    document.getElementById('repoLink').href = 'https://github.com/alefadham-droid/sensor-dashboard';
     
     // بارگذاری اولیه داده‌ها
     loadSensorData();
