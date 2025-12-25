@@ -3,257 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد سنسور ESP32</title>
-    
-    <!-- استایل‌ها -->
+    <title>اطلاعات سنسور AHT20</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
-    
-    <!-- متا تگ‌های کش -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
     <style>
-        /* استایل‌های اولیه */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Vazirmatn', 'Vazir', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #2d3748;
-            min-height: 100vh;
-            padding: 20px;
-            direction: rtl;
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-bg: #ecf0f1;
+            --text-color: #333;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+        
+        * {
+            font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
         }
-        header {
-            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
-            padding: 25px 30px;
-            text-align: center;
-        }
-        h1 { font-size: 2rem; margin-bottom: 10px; }
-        .subtitle { opacity: 0.9; font-size: 1.1rem; }
-        .status { margin-top: 15px; }
-        .status-dot {
-            display: inline-block;
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background: #ff6b6b;
-            margin-left: 8px;
-        }
-        .status-dot.connected { background: #4ecdc4; }
-        
-        section { padding: 25px; }
-        h2 { color: #3a0ca3; margin-bottom: 20px; font-size: 1.5rem; }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 15px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border-top: 4px solid;
-        }
-        .temp-card { border-color: #ff6b6b; }
-        .hum-card { border-color: #4ecdc4; }
-        .stat-value {
-            font-size: 3rem;
-            font-weight: 800;
-            margin: 15px 0;
-            line-height: 1;
-        }
-        .temp-card .stat-value { color: #ff6b6b; }
-        .hum-card .stat-value { color: #4ecdc4; }
-        
-        .charts-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
-        }
-        .chart-wrapper {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        .chart-container { height: 300px; }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th {
-            background: linear-gradient(135deg, #4361ee, #3a0ca3);
-            color: white;
-            padding: 15px;
-            text-align: center;
-        }
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eaeaea;
-            text-align: center;
-        }
-        .loading-cell {
-            text-align: center;
-            color: #718096;
-            padding: 40px !important;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
         }
         
-        .table-actions {
+        .header h1 {
+            margin: 0;
+            font-size: 2.2rem;
             display: flex;
+            align-items: center;
+            justify-content: center;
             gap: 10px;
-            margin-top: 15px;
         }
-        button {
-            background: #4361ee;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: inherit;
+        
+        .header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .sensor-info-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+            border-right: 5px solid var(--secondary-color);
+        }
+        
+        .sensor-info-card h2 {
+            color: var(--secondary-color);
+            margin-top: 0;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sensor-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .detail-item {
+            background-color: #f8f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            border-right: 4px solid var(--secondary-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .detail-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        button:hover { background: #3a0ca3; }
         
-        footer {
+        .detail-value {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .data-table-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            overflow-x: auto;
+        }
+        
+        .data-table-container h2 {
+            color: var(--secondary-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
             text-align: center;
-            padding: 20px;
-            color: #718096;
-            border-top: 1px solid #eaeaea;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f1f7ff;
+        }
+        
+        .temperature-cell {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+        
+        .humidity-cell {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        .timestamp-cell {
+            font-family: monospace;
+            direction: ltr;
+        }
+        
+        .last-update {
+            text-align: center;
+            margin-top: 25px;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-right: 3px solid #95a5a6;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            background-color: #ffeaea;
+            border-radius: 8px;
+            border-right: 4px solid var(--accent-color);
         }
         
         @media (max-width: 768px) {
-            .charts-container { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr; }
+            .sensor-details {
+                grid-template-columns: 1fr;
+            }
+            
+            th, td {
+                padding: 10px 5px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- هدر -->
-        <header>
-            <h1><i class="fas fa-microchip"></i> داشبورد سنسور ESP32</h1>
-            <p class="subtitle">نمایش زنده داده‌های سنسور AHT20</p>
-            <div class="status">
-                <span class="status-dot"></span>
-                <span id="statusText">در حال اتصال...</span>
-                <span style="margin-right: 20px;"> | </span>
-                <span>آخرین بروزرسانی: <span id="lastUpdateTime">--:--</span></span>
-            </div>
-        </header>
-
-        <!-- آمار زنده -->
-        <section class="live-stats">
-            <h2><i class="fas fa-chart-line"></i> آمار لحظه‌ای</h2>
-            <div class="stats-grid">
-                <div class="stat-card temp-card">
-                    <h3><i class="fas fa-thermometer-half"></i> دمای فعلی</h3>
-                    <div class="stat-value" id="currentTemperature">--</div>
-                    <div class="stat-unit">°C</div>
+        <div class="header">
+            <h1><i class="fas fa-microchip"></i> اطلاعات سنسور AHT20</h1>
+            <p>نمایش زنده داده‌های دما و رطوبت</p>
+        </div>
+        
+        <div class="sensor-info-card">
+            <h2><i class="fas fa-info-circle"></i> مشخصات سنسور</h2>
+            <div class="sensor-details">
+                <div class="detail-item">
+                    <div class="detail-label"><i class="fas fa-thermometer-half"></i> نوع سنسور</div>
+                    <div class="detail-value" id="sensor-type">AHT20</div>
                 </div>
-                
-                <div class="stat-card hum-card">
-                    <h3><i class="fas fa-tint"></i> رطوبت فعلی</h3>
-                    <div class="stat-value" id="currentHumidity">--</div>
-                    <div class="stat-unit">%</div>
+                <div class="detail-item">
+                    <div class="detail-label"><i class="fas fa-clock"></i> تعداد رکوردها</div>
+                    <div class="detail-value" id="record-count">در حال بارگذاری...</div>
                 </div>
-                
-                <div class="stat-card">
-                    <h3><i class="fas fa-info-circle"></i> اطلاعات سیستم</h3>
-                    <div style="margin: 15px 0;">
-                        <div>رکوردها: <span id="recordCount">0</span></div>
-                        <div style="margin-top: 10px;">رفرش: هر 30 ثانیه</div>
-                    </div>
+                <div class="detail-item">
+                    <div class="detail-label"><i class="fas fa-temperature-high"></i> میانگین دما</div>
+                    <div class="detail-value" id="avg-temperature">در حال بارگذاری...</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label"><i class="fas fa-tint"></i> میانگین رطوبت</div>
+                    <div class="detail-value" id="avg-humidity">در حال بارگذاری...</div>
                 </div>
             </div>
-        </section>
-
-        <!-- نمودارها -->
-        <section class="charts">
-            <h2><i class="fas fa-chart-area"></i> نمودارهای تاریخی</h2>
-            <div class="charts-container">
-                <div class="chart-wrapper">
-                    <h3><i class="fas fa-fire"></i> تغییرات دما</h3>
-                    <div class="chart-container">
-                        <canvas id="temperatureChart"></canvas>
-                    </div>
-                </div>
-                
-                <div class="chart-wrapper">
-                    <h3><i class="fas fa-water"></i> تغییرات رطوبت</h3>
-                    <div class="chart-container">
-                        <canvas id="humidityChart"></canvas>
-                    </div>
-                </div>
+        </div>
+        
+        <div class="data-table-container">
+            <h2><i class="fas fa-table"></i> داده‌های ثبت شده</h2>
+            <div id="loading" class="loading">
+                <i class="fas fa-spinner fa-spin"></i> در حال بارگذاری داده‌ها...
             </div>
-        </section>
-
-        <!-- جدول داده‌ها -->
-        <section class="data-table">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2><i class="fas fa-table"></i> تاریخچه داده‌ها</h2>
-                <div class="table-actions">
-                    <button id="refreshBtn">
-                        <i class="fas fa-redo"></i>
-                        رفرش داده‌ها
-                    </button>
-                </div>
-            </div>
-            
-            <table>
+            <div id="error" class="error" style="display: none;"></div>
+            <table id="sensor-table" style="display: none;">
                 <thead>
                     <tr>
-                        <th>تاریخ</th>
-                        <th>زمان</th>
+                        <th>ردیف</th>
+                        <th>زمان ثبت</th>
                         <th>دما (°C)</th>
                         <th>رطوبت (%)</th>
-                        <th>مدت گذشته</th>
+                        <th>سنسور</th>
                     </tr>
                 </thead>
-                <tbody id="dataTableBody">
-                    <tr>
-                        <td colspan="5" class="loading-cell">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            در حال بارگذاری داده‌ها...
-                        </td>
-                    </tr>
+                <tbody id="table-body">
+                    <!-- داده‌ها اینجا با JavaScript اضافه می‌شوند -->
                 </tbody>
             </table>
-        </section>
-
-        <!-- فوتر -->
-        <footer>
-            <p>ساخته شده با <i class="fas fa-heart" style="color: #ff6b6b;"></i> برای پروژه سنسور ESP32</p>
-            <p style="margin-top: 10px; font-size: 0.9rem;">
-                <i class="fab fa-github"></i>
-                مخزن GitHub: 
-                <a href="https://github.com/alefadham-droid/sensor-dashboard" target="_blank" style="color: #4361ee;">
-                    alefadham-droid/sensor-dashboard
-                </a>
-            </p>
-        </footer>
+        </div>
+        
+        <div class="last-update">
+            <i class="far fa-clock"></i> آخرین به‌روزرسانی: <span id="last-update-time">در حال بارگذاری...</span>
+        </div>
     </div>
 
-    <!-- اسکریپت اصلی -->
-    <script src="script.js"></script>
+    <script>
+        // تابع تبدیل تایم‌استمپ به تاریخ و زمان قابل خواندن
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000); // تبدیل ثانیه به میلی‌ثانیه
+            
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
+            return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+        }
+        
+        // تابع برای محاسبه میانگین
+        function calculateAverage(data, key) {
+            if (data.length === 0) return 0;
+            const sum = data.reduce((total, item) => total + item[key], 0);
+            return (sum / data.length).toFixed(2);
+        }
+        
+        // تابع اصلی برای بارگذاری و نمایش داده‌ها
+        async function loadSensorData() {
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error');
+            const tableElement = document.getElementById('sensor-table');
+            const tableBody = document.getElementById('table-body');
+            
+            try {
+                // فراخوانی فایل JSON (نام فایل را بر اساس فایل خود تغییر دهید)
+                const response = await fetch('data.json');
+                
+                if (!response.ok) {
+                    throw new Error(`خطا در دریافت داده‌ها: ${response.status}`);
+                }
+                
+                const sensorData = await response.json();
+                
+                // مخفی کردن عنصر loading
+                loadingElement.style.display = 'none';
+                
+                // نمایش جدول
+                tableElement.style.display = 'table';
+                
+                // پاک کردن محتوای قبلی جدول
+                tableBody.innerHTML = '';
+                
+                // محاسبه اطلاعات آماری
+                const recordCount = sensorData.length;
+                const avgTemperature = calculateAverage(sensorData, 'temperature');
+                const avgHumidity = calculateAverage(sensorData, 'humidity');
+                
+                // به‌روزرسانی اطلاعات سنسور
+                document.getElementById('record-count').textContent = recordCount + ' رکورد';
+                document.getElementById('avg-temperature').textContent = avgTemperature + ' °C';
+                document.getElementById('avg-humidity').textContent = avgHumidity + ' %';
+                
+                // اضافه کردن ردیف‌ها به جدول
+                sensorData.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td class="timestamp-cell">${formatTimestamp(item.timestamp)}</td>
+                        <td class="temperature-cell">${item.temperature} °C</td>
+                        <td class="humidity-cell">${item.humidity} %</td>
+                        <td>${item.sensor}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+                
+                // به‌روزرسانی زمان آخرین بروزرسانی
+                const now = new Date();
+                const updateTime = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+                document.getElementById('last-update-time').textContent = updateTime;
+                
+            } catch (error) {
+                // نمایش خطا
+                loadingElement.style.display = 'none';
+                errorElement.style.display = 'block';
+                errorElement.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${error.message}`;
+                console.error('خطا در بارگذاری داده‌ها:', error);
+            }
+        }
+        
+        // بارگذاری اولیه داده‌ها
+        document.addEventListener('DOMContentLoaded', loadSensorData);
+        
+        // بارگذاری مجدد داده‌ها هر 30 ثانیه
+        setInterval(loadSensorData, 30000);
+    </script>
 </body>
 </html>
