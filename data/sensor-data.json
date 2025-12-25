@@ -1,7 +1,8 @@
 [
   {
-    "timestamp": 1700000000,
+    "timestamp": 1735140000,
     "temperature": 25.5,
-    "humidity": 60.2
+    "humidity": 60.2,
+    "sensor": "AHT20"
   }
 ]
