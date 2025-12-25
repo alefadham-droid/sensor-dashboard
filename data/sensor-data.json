@@ -1,0 +1,9 @@
+[
+  {
+    "timestamp": 1735141200,
+    "temperature": 25.5,
+    "humidity": 60.2,
+    "sensor": "AHT20",
+    "device": "ESP32"
+  }
+]
