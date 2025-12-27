@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📊 داشبورد سنسور AHT20 - داده‌های زنده</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js برای نمودار -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* استایل‌ها مانند قبل */
         :root {
             --primary: #1a237e;
             --secondary: #2962ff;
@@ -38,7 +38,6 @@
             margin: 0 auto;
         }
         
-        /* هدر */
         .header {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
@@ -95,7 +94,12 @@
             50% { opacity: 0.5; }
         }
         
-        /* کارت‌های وضعیت */
+        .status-dot.disconnected {
+            background: var(--danger);
+            box-shadow: 0 0 10px var(--danger);
+            animation: none;
+        }
+        
         .status-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -201,7 +205,6 @@
             color: var(--gray);
         }
         
-        /* نمودار */
         .chart-section {
             background: white;
             border-radius: 20px;
@@ -224,7 +227,6 @@
             position: relative;
         }
         
-        /* جدول */
         .table-section {
             background: white;
             border-radius: 20px;
@@ -268,7 +270,6 @@
             background: #f8f9ff;
         }
         
-        /* کنترل‌ها */
         .controls {
             display: flex;
             gap: 15px;
@@ -309,7 +310,6 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
-        /* فوتر */
         .footer {
             text-align: center;
             margin-top: 40px;
@@ -330,7 +330,6 @@
             font-weight: 600;
         }
         
-        /* ریسپانسیو */
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -355,22 +354,20 @@
 </head>
 <body>
     <div class="container">
-        <!-- هدر -->
         <header class="header">
             <div class="header-info">
-                <h1><i class="fas fa-temperature-high"></i> عشق کن میلاد </h1>
+                <h1><i class="fas fa-temperature-high"></i> داشبورد سنسور AHT20</h1>
                 <p>نمایش زنده داده‌های دما و رطوبت - به‌روزرسانی خودکار</p>
             </div>
             <div class="live-status">
                 <div class="status-indicator">
-                    <div class="status-dot"></div>
-                    <span>اتصال برقرار</span>
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="status-text">در حال اتصال...</span>
                 </div>
                 <div>آخرین به‌روزرسانی: <span id="last-update">--:--:--</span></div>
             </div>
         </header>
         
-        <!-- کارت‌های وضعیت -->
         <div class="status-cards">
             <div class="status-card temperature">
                 <div class="card-header">
@@ -401,7 +398,7 @@
                 <div class="value-container">
                     <div style="font-size: 2.5rem; font-weight: bold; color: var(--warning);">AHT20</div>
                     <div style="margin-top: 20px;">
-                        <div>تعداد داده‌ها: <span id="data-count">0</span> رکورد</div>
+                        <div>آخرین بروزرسانی: <span id="last-data-age">--</span> ثانیه پیش</div>
                         <div>دامنه دما: <span id="temp-range">--</span>°C</div>
                         <div>دامنه رطوبت: <span id="hum-range">--</span>%</div>
                     </div>
@@ -409,7 +406,6 @@
             </div>
         </div>
         
-        <!-- کنترل‌ها -->
         <div class="controls">
             <button class="btn btn-primary" onclick="loadData()">
                 <i class="fas fa-sync"></i> بارگذاری مجدد
@@ -424,15 +420,14 @@
                 <label for="refresh-interval">بازه به‌روزرسانی:</label>
                 <select id="refresh-interval" onchange="changeRefreshInterval(this.value)">
                     <option value="5000">5 ثانیه</option>
-                    <option value="10000">10 ثانیه</option>
-                    <option value="30000" selected>30 ثانیه</option>
+                    <option value="10000" selected>10 ثانیه</option>
+                    <option value="30000">30 ثانیه</option>
                     <option value="60000">1 دقیقه</option>
                     <option value="0">غیرفعال</option>
                 </select>
             </div>
         </div>
         
-        <!-- نمودار -->
         <section class="chart-section">
             <div class="chart-header">
                 <h2><i class="fas fa-chart-line"></i> نمودار تغییرات</h2>
@@ -447,7 +442,6 @@
             </div>
         </section>
         
-        <!-- جدول داده‌ها -->
         <section class="table-section">
             <h2><i class="fas fa-table"></i> تاریخچه داده‌ها</h2>
             <div id="loading" style="text-align: center; padding: 40px; color: var(--secondary);">
@@ -465,64 +459,68 @@
                         <th>عملیات</th>
                     </tr>
                 </thead>
-                <tbody id="table-body">
-                    <!-- داده‌ها اینجا نمایش داده می‌شوند -->
-                </tbody>
+                <tbody id="table-body"></tbody>
             </table>
         </section>
         
-        <!-- فوتر -->
         <footer class="footer">
-            <div>عشق کن میلاد</div>
+            <div>داشبورد مانیتورینگ سنسور AHT20</div>
             <div class="update-time">
                 <i class="far fa-clock"></i>
                 <span>آخرین به‌روزرسانی: <span id="update-time-text">--:--:--</span></span>
             </div>
             <div style="margin-top: 15px; font-size: 0.85rem;">
-                داده‌ها از فایل JSON در GitHub بارگذاری می‌شوند
+                وضعیت سنسور: <span id="sensor-status-footer">نامشخص</span>
             </div>
         </footer>
     </div>
 
     <script>
-        // تنظیمات
+        // تنظیمات بهینه شده
         const CONFIG = {
-            // آدرس فایل JSON در GitHub
-            dataUrl: 'https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/sensor-data.json',
+            // استفاده از CDN برای سرعت بیشتر
+            dataUrl: 'https://cdn.jsdelivr.net/gh/alefadham-droid/sensor-dashboard@main/data/sensor-data.json',
             
-            // آدرس GitHub API برای آپلود داده (نیاز به token دارد)
+            // آدرس GitHub API برای آپلود داده
             githubApi: 'https://api.github.com/repos/alefadham-droid/sensor-dashboard/contents/data/sensor-data.json',
             
-            // برای تست - آدرس جایگزین
+            // برای تست
             backupUrl: './data/sensor-data.json',
             
-            // پیش‌فرض‌ها
-            refreshInterval: 30000,
-            maxDataPoints: 50
+            // تنظیمات جدید
+            refreshInterval: 10000, // کاهش به 10 ثانیه
+            fetchTimeout: 5000,     // کاهش timeout به 5 ثانیه
+            maxDataPoints: 50,
+            sensorTimeout: 120      // سنسور اگر 2 دقیقه داده جدید نداشته باشد، قطع شده
         };
         
-        // متغیرهای全局
+        // متغیرهای جهانی
         let sensorData = [];
         let chart = null;
         let chartType = 'line';
         let refreshTimer = null;
         let lastTemp = null;
         let lastHum = null;
+        let lastDataTime = 0;
         
-        // تابع اصلی بارگذاری داده
+        // تابع اصلی بارگذاری داده (بهینه شده)
         async function loadData() {
             showLoading(true);
             
             try {
-                console.log('📡 در حال دریافت داده از:', CONFIG.dataUrl);
+                console.log('📡 در حال دریافت داده...');
                 
-                // امتحان چندین منبع
-                let response = await fetchWithTimeout(CONFIG.dataUrl, 10000);
+                // استفاده از cache busting
+                const url = CONFIG.dataUrl + `?t=${Date.now()}`;
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), CONFIG.fetchTimeout);
                 
-                if (!response.ok) {
-                    console.log('🔄 تلاش با آدرس جایگزین...');
-                    response = await fetch(CONFIG.backupUrl);
-                }
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    cache: 'no-cache'
+                });
+                
+                clearTimeout(timeoutId);
                 
                 if (!response.ok) {
                     throw new Error(`خطای HTTP: ${response.status}`);
@@ -534,54 +532,96 @@
                     throw new Error('فرمت داده نامعتبر است');
                 }
                 
-                // محدود کردن تعداد داده‌ها
-                sensorData = data.slice(-CONFIG.maxDataPoints);
+                // بررسی وجود داده جدید
+                if (data.length > 0) {
+                    const latestData = data[data.length - 1];
+                    lastDataTime = latestData.timestamp;
+                    
+                    // فقط اگر داده جدید باشد، بروزرسانی کن
+                    if (sensorData.length === 0 || 
+                        (sensorData.length > 0 && latestData.timestamp > sensorData[sensorData.length - 1].timestamp)) {
+                        
+                        sensorData = data.slice(-CONFIG.maxDataPoints);
+                        updateUI();
+                        updateChart();
+                        updateTable();
+                        updateLastUpdateTime();
+                    }
+                }
                 
-                // به‌روزرسانی UI
-                updateUI();
-                updateChart();
-                updateTable();
-                updateLastUpdateTime();
-                
+                // بررسی سلامت سنسور
+                checkSensorHealth();
                 showError(false);
-                console.log('✅ داده‌ها با موفقیت بارگذاری شدند');
+                console.log('✅ داده‌ها بررسی شدند');
                 
             } catch (error) {
                 console.error('❌ خطا در بارگذاری داده:', error);
                 showError(`خطا در بارگذاری داده: ${error.message}`);
                 
-                // استفاده از داده‌های نمونه در صورت خطا
+                // فقط در صورت نبود داده از نمونه استفاده کن
                 if (sensorData.length === 0) {
-                    console.log('🔄 استفاده از داده‌های نمونه...');
                     useSampleData();
                 }
+                
+                // حتی در صورت خطا هم وضعیت سنسور را بررسی کن
+                checkSensorHealth();
             } finally {
                 showLoading(false);
             }
         }
         
-        // تابع fetch با تایم‌اوت
-        async function fetchWithTimeout(url, timeout = 10000) {
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), timeout);
-            
-            try {
-                const response = await fetch(url, {
-                    signal: controller.signal
-                });
-                clearTimeout(id);
-                return response;
-            } catch (error) {
-                clearTimeout(id);
-                throw error;
+        // بررسی سلامت سنسور
+        function checkSensorHealth() {
+            if (sensorData.length === 0) {
+                updateConnectionStatus(false, "بدون داده");
+                return;
             }
+            
+            const latest = sensorData[sensorData.length - 1];
+            const now = Math.floor(Date.now() / 1000);
+            const dataAge = now - latest.timestamp;
+            
+            // به‌روزرسانی زمان آخرین داده
+            document.getElementById('last-data-age').textContent = dataAge;
+            
+            // اگر داده قدیمی‌تر از 2 دقیقه باشد
+            if (dataAge > CONFIG.sensorTimeout) {
+                updateConnectionStatus(false, `قطع شده (${Math.floor(dataAge/60)} دقیقه قبل)`);
+            } else if (dataAge > 60) {
+                updateConnectionStatus(true, "اتصال ضعیف");
+            } else {
+                updateConnectionStatus(true, "برقرار");
+            }
+            
+            // به‌روزرسانی فوتر
+            document.getElementById('sensor-status-footer').textContent = 
+                dataAge > CONFIG.sensorTimeout ? 'قطع' : 'متصل';
+        }
+        
+        // به‌روزرسانی وضعیت اتصال
+        function updateConnectionStatus(isConnected, message) {
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            
+            if (isConnected) {
+                statusDot.classList.remove('disconnected');
+                statusDot.style.background = 'var(--success)';
+                statusDot.style.boxShadow = '0 0 10px var(--success)';
+                statusDot.style.animation = 'pulse 2s infinite';
+            } else {
+                statusDot.classList.add('disconnected');
+                statusDot.style.background = 'var(--danger)';
+                statusDot.style.boxShadow = '0 0 10px var(--danger)';
+                statusDot.style.animation = 'none';
+            }
+            
+            statusText.textContent = message;
         }
         
         // به‌روزرسانی UI
         function updateUI() {
             if (sensorData.length === 0) return;
             
-            // آخرین داده
             const latest = sensorData[sensorData.length - 1];
             
             // نمایش مقادیر فعلی
@@ -599,7 +639,7 @@
                 updateTrend('hum-trend', humTrend);
             }
             
-            // ذخیره مقادیر برای محاسبه روند بعدی
+            // ذخیره مقادیر
             lastTemp = latest.temperature;
             lastHum = latest.humidity;
             
@@ -618,7 +658,6 @@
             // به‌روزرسانی آمار
             document.getElementById('avg-temp').textContent = avgTemp;
             document.getElementById('avg-hum').textContent = avgHum;
-            document.getElementById('data-count').textContent = sensorData.length;
             document.getElementById('temp-range').textContent = `${minTemp} - ${maxTemp}`;
             document.getElementById('hum-range').textContent = `${minHum} - ${maxHum}`;
         }
@@ -644,12 +683,10 @@
         function updateChart() {
             const ctx = document.getElementById('sensorChart').getContext('2d');
             
-            // حذف نمودار قبلی
-            if (chart) {
-                chart.destroy();
-            }
+            if (chart) chart.destroy();
             
-            // آماده‌سازی داده‌ها
+            if (sensorData.length === 0) return;
+            
             const labels = sensorData.map((d, i) => {
                 const date = new Date(d.timestamp * 1000);
                 return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
@@ -658,7 +695,6 @@
             const tempData = sensorData.map(d => d.temperature);
             const humData = sensorData.map(d => d.humidity);
             
-            // ایجاد نمودار
             chart = new Chart(ctx, {
                 type: chartType,
                 data: {
@@ -688,33 +724,19 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'top',
-                            rtl: true
-                        },
+                        legend: { position: 'top', rtl: true },
                         tooltip: {
                             rtl: true,
                             callbacks: {
                                 label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    label += context.parsed.y.toFixed(1);
-                                    return label;
+                                    return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}`;
                                 }
                             }
                         }
                     },
                     scales: {
-                        x: {
-                            ticks: {
-                                maxRotation: 45
-                            }
-                        },
-                        y: {
-                            beginAtZero: false
-                        }
+                        x: { ticks: { maxRotation: 45 } },
+                        y: { beginAtZero: false }
                     }
                 }
             });
@@ -762,25 +784,20 @@
                 sensor: "AHT20"
             };
             
-            // محدود کردن دقت اعداد
             newData.temperature = Math.round(newData.temperature * 10) / 10;
             newData.humidity = Math.round(newData.humidity * 10) / 10;
             
             sensorData.push(newData);
             
-            // محدود کردن تعداد داده‌ها
             if (sensorData.length > CONFIG.maxDataPoints) {
                 sensorData = sensorData.slice(-CONFIG.maxDataPoints);
             }
             
-            // به‌روزرسانی UI
             updateUI();
             updateChart();
             updateTable();
+            checkSensorHealth();
             
-            console.log('✅ داده تست اضافه شد:', newData);
-            
-            // نمایش پیام
             alert(`داده تست اضافه شد:\nدما: ${newData.temperature}°C\nرطوبت: ${newData.humidity}%`);
         }
         
@@ -791,6 +808,7 @@
                 updateUI();
                 updateChart();
                 updateTable();
+                checkSensorHealth();
             }
         }
         
@@ -803,6 +821,7 @@
                 updateUI();
                 updateChart();
                 updateTable();
+                updateConnectionStatus(false, "بدون داده");
                 alert('✅ داده‌ها بازنشانی شدند');
             }
         }
@@ -829,47 +848,18 @@
             const now = Math.floor(Date.now() / 1000);
             
             sensorData = [
-                {
-                    timestamp: now - 300,
-                    temperature: 25.3,
-                    humidity: 59.8,
-                    sensor: "AHT20"
-                },
-                {
-                    timestamp: now - 240,
-                    temperature: 25.5,
-                    humidity: 60.1,
-                    sensor: "AHT20"
-                },
-                {
-                    timestamp: now - 180,
-                    temperature: 25.7,
-                    humidity: 60.3,
-                    sensor: "AHT20"
-                },
-                {
-                    timestamp: now - 120,
-                    temperature: 25.6,
-                    humidity: 60.0,
-                    sensor: "AHT20"
-                },
-                {
-                    timestamp: now - 60,
-                    temperature: 25.4,
-                    humidity: 59.7,
-                    sensor: "AHT20"
-                },
-                {
-                    timestamp: now,
-                    temperature: 25.2,
-                    humidity: 59.5,
-                    sensor: "AHT20"
-                }
+                { timestamp: now - 300, temperature: 25.3, humidity: 59.8, sensor: "AHT20" },
+                { timestamp: now - 240, temperature: 25.5, humidity: 60.1, sensor: "AHT20" },
+                { timestamp: now - 180, temperature: 25.7, humidity: 60.3, sensor: "AHT20" },
+                { timestamp: now - 120, temperature: 25.6, humidity: 60.0, sensor: "AHT20" },
+                { timestamp: now - 60, temperature: 25.4, humidity: 59.7, sensor: "AHT20" },
+                { timestamp: now, temperature: 25.2, humidity: 59.5, sensor: "AHT20" }
             ];
             
             updateUI();
             updateChart();
             updateTable();
+            checkSensorHealth();
             showError(false);
         }
         
@@ -896,17 +886,6 @@
                 errorEl.innerHTML = `
                     <i class="fas fa-exclamation-triangle"></i>
                     <div style="margin-top: 10px;">${message}</div>
-                    <button onclick="useSampleData()" style="
-                        margin-top: 15px;
-                        padding: 8px 20px;
-                        background: var(--secondary);
-                        color: white;
-                        border: none;
-                        border-radius: 5px;
-                        cursor: pointer;
-                    ">
-                        <i class="fas fa-database"></i> استفاده از داده نمونه
-                    </button>
                 `;
             } else {
                 errorEl.style.display = 'none';
@@ -917,15 +896,16 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 داشبورد در حال راه‌اندازی...');
             
-            // بارگذاری اولیه داده
+            // بارگذاری اولیه
             loadData();
             
-            // تنظیم تایمر به‌روزرسانی خودکار
+            // تنظیم تایمر
             refreshTimer = setInterval(loadData, CONFIG.refreshInterval);
             
-            // نمایش اطلاعات
+            // بررسی دوره‌ای سلامت سنسور
+            setInterval(checkSensorHealth, 5000);
+            
             console.log('✅ داشبورد آماده است');
-            console.log('📊 بازه به‌روزرسانی:', CONFIG.refreshInterval / 1000, 'ثانیه');
         });
     </script>
 </body>
