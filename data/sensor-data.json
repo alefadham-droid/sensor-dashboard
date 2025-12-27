@@ -21,10 +21,10 @@
     "uptime": 313
   },
   {
-    "timestamp": 1766855994,
+    "timestamp": 1766856013,
     "temperature": 15.4,
-    "humidity": 40,
+    "humidity": 39.9,
     "sensor": "AHT20",
-    "uptime": 575
+    "uptime": 594
   }
 ]
