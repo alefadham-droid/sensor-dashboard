@@ -1,1 +1,8 @@
-[{"timestamp":1735249600,"temperature":25.3,"humidity":59.8,"sensor":"AHT20"},{"timestamp":1735249660,"temperature":25.5,"humidity":60.2,"sensor":"AHT20"},{"timestamp":1735249720,"temperature":25.7,"humidity":60.5,"sensor":"AHT20"}]
+[
+  {
+    "timestamp": 1735246800,
+    "temperature": 25.5,
+    "humidity": 60.2,
+    "sensor": "AHT20"
+  }
+]
