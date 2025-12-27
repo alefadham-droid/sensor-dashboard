@@ -1,1 +1,87 @@
-[{"timestamp":1735141200,"temperature":25.5,"humidity":60.2,"sensor":"AHT20"},{"timestamp":1735141260,"temperature":25.7,"humidity":60,"sensor":"AHT20"},{"timestamp":1735141320,"temperature":25.6,"humidity":59.8,"sensor":"AHT20"},{"timestamp":32,"temperature":20.5,"humidity":40.7,"sensor":"AHT20"},{"timestamp":66,"temperature":20.5,"humidity":40.7,"sensor":"AHT20"},{"timestamp":100,"temperature":20.6,"humidity":40.8,"sensor":"AHT20"},{"timestamp":133,"temperature":20.6,"humidity":40.7,"sensor":"AHT20"},{"timestamp":167,"temperature":20.6,"humidity":40.7,"sensor":"AHT20"},{"timestamp":201,"temperature":20.6,"humidity":40.7,"sensor":"AHT20"},{"timestamp":235,"temperature":20.7,"humidity":40.7,"sensor":"AHT20"},{"timestamp":269,"temperature":20.7,"humidity":40.6,"sensor":"AHT20"},{"timestamp":302,"temperature":20.7,"humidity":40.7,"sensor":"AHT20"},{"timestamp":336,"temperature":20.7,"humidity":40.7,"sensor":"AHT20"}]
+[
+  {
+    "timestamp": 1735141200,
+    "temperature": 25.5,
+    "humidity": 60.2,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 1735141260,
+    "temperature": 25.7,
+    "humidity": 60,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 1735141320,
+    "temperature": 25.6,
+    "humidity": 59.8,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 32,
+    "temperature": 20.5,
+    "humidity": 40.7,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 66,
+    "temperature": 20.5,
+    "humidity": 40.7,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 100,
+    "temperature": 20.6,
+    "humidity": 40.8,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 133,
+    "temperature": 20.6,
+    "humidity": 40.7,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 167,
+    "temperature": 20.6,
+    "humidity": 40.7,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 201,
+    "temperature": 20.6,
+    "humidity": 40.7,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 235,
+    "temperature": 20.7,
+    "humidity": 40.7,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 269,
+    "temperature": 20.7,
+    "humidity": 40.6,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 302,
+    "temperature": 20.7,
+    "humidity": 40.7,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 336,
+    "temperature": 20.7,
+    "humidity": 40.7,
+    "sensor": "AHT20"
+  },
+  {
+    "timestamp": 1766826231,
+    "temperature": 22.9,
+    "humidity": 39.1,
+    "sensor": "AHT20",
+    "uptime": 17
+  }
+]
