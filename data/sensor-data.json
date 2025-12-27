@@ -78,10 +78,10 @@
     "sensor": "AHT20"
   },
   {
-    "timestamp": 1766826251,
+    "timestamp": 1766826270,
     "temperature": 23,
     "humidity": 39.1,
     "sensor": "AHT20",
-    "uptime": 37
+    "uptime": 56
   }
 ]
