@@ -7,17 +7,10 @@
     "error": "Sensor disconnected"
   },
   {
-    "timestamp": 1766855435,
-    "temperature": 15.4,
-    "humidity": 40.3,
+    "timestamp": 1766855473,
+    "temperature": 14.8,
+    "humidity": 40,
     "sensor": "AHT20",
-    "uptime": 16
-  },
-  {
-    "timestamp": 1766855454,
-    "temperature": 15.1,
-    "humidity": 40.2,
-    "sensor": "AHT20",
-    "uptime": 35
+    "uptime": 53
   }
 ]
