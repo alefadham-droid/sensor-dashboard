@@ -1,4 +1,1 @@
-{
-  "temperature": 28.3,
-  "humidity": 65
-}
+[{"timestamp":1766823008,"temperature":20.7,"humidity":40.7,"sensor":"AHT20"}]
