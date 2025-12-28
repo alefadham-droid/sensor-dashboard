@@ -1,0 +1,8 @@
+{
+  "name": "sensor-dashboard",
+  "cors": {
+    "allowed_origins": ["https://alefadham-droid.github.io"],
+    "allowed_methods": ["GET"],
+    "allowed_headers": ["Content-Type"]
+  }
+}
