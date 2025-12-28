@@ -1,1 +1,1 @@
-[{"id":3,"timestamp":"00:03:08","unix_time":188,"temperature":22.0,"humidity":46.1,"sensor":"AHT20","device":"ESP32"}]
+[{"id":4,"timestamp":"00:04:10","unix_time":250,"temperature":22.0,"humidity":46.0,"sensor":"AHT20","device":"ESP32"}]
