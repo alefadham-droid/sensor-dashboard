@@ -7,8 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/moment-jalaali@0.9.4/build/moment-jalaali.js"></script>
     <style>
         :root {
             --primary: #4361ee;
@@ -16,8 +14,6 @@
             --success: #4cc9f0;
             --danger: #f72585;
             --warning: #f8961e;
-            --light: #f8f9fa;
-            --dark: #212529;
         }
         
         body {
@@ -120,7 +116,6 @@
             font-weight: bold;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
         }
         
         .connection-online {
@@ -137,7 +132,7 @@
         
         .chart-container {
             position: relative;
-            height: 350px;
+            height: 300px;
             width: 100%;
             background: white;
             border-radius: 10px;
@@ -159,47 +154,6 @@
             box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
         }
         
-        .refresh-btn:active {
-            transform: scale(0.98);
-        }
-        
-        .last-update {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .stat-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-        
-        .data-table {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
         .table th {
             background: var(--primary);
             color: white;
@@ -207,62 +161,9 @@
             top: 0;
         }
         
-        .loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 200px;
-        }
-        
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .time-ago {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .alert-custom {
-            border-radius: 10px;
-            border: none;
-            animation: slideIn 0.5s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        .control-panel {
-            background: rgba(0,0,0,0.05);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            
             .sensor-value {
                 font-size: 2.5rem;
-            }
-            
-            .chart-container {
-                height: 250px;
             }
         }
     </style>
@@ -285,38 +186,23 @@
                         <button id="refreshBtn" class="refresh-btn">
                             <i class="bi bi-arrow-clockwise"></i> بروزرسانی
                         </button>
-                        <div id="lastUpdate" class="last-update mt-2">
-                            <i class="bi bi-clock"></i> در حال بارگذاری...
+                        <div id="lastUpdate" class="text-white mt-2">
+                            <i class="bi bi-clock"></i> <small>در حال بارگذاری...</small>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- پنل کنترل -->
-        <div class="control-panel">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center">
-                        <div class="status-indicator" id="statusIndicator"></div>
-                        <span id="connectionStatus" class="connection-status connection-offline">
-                            در حال اتصال...
-                        </span>
-                        <div class="ms-3">
-                            <span id="timeAgo" class="time-ago">--</span>
+                <!-- وضعیت اتصال -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="d-flex align-items-center">
+                            <div class="status-indicator" id="statusIndicator"></div>
+                            <span id="connectionStatus" class="connection-status connection-offline">
+                                در حال اتصال...
+                            </span>
+                            <div class="ms-3 text-white">
+                                <span id="timeAgo">--</span>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="col-md-6 text-end">
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
-                        <label class="form-check-label" for="autoRefresh">Auto-Refresh</label>
-                    </div>
-                    <div class="btn-group btn-group-sm ms-2">
-                        <button class="btn btn-outline-primary" onclick="changeRefreshRate(2)">2s</button>
-                        <button class="btn btn-outline-primary active" onclick="changeRefreshRate(5)">5s</button>
-                        <button class="btn btn-outline-primary" onclick="changeRefreshRate(10)">10s</button>
-                        <button class="btn btn-outline-primary" onclick="changeRefreshRate(30)">30s</button>
                     </div>
                 </div>
             </div>
@@ -324,7 +210,7 @@
 
         <!-- کارت‌های اصلی -->
         <div class="row mb-4">
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6">
                 <div class="card temp-card">
                     <div class="card-body text-center">
                         <h5><i class="bi bi-thermometer-half"></i> دمای فعلی</h5>
@@ -338,7 +224,7 @@
                 </div>
             </div>
             
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6">
                 <div class="card hum-card">
                     <div class="card-body text-center">
                         <h5><i class="bi bi-moisture"></i> رطوبت فعلی</h5>
@@ -352,7 +238,7 @@
                 </div>
             </div>
             
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6">
                 <div class="card avg-card">
                     <div class="card-body text-center">
                         <h5><i class="bi bi-calculator"></i> میانگین دما</h5>
@@ -365,7 +251,7 @@
                 </div>
             </div>
             
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6">
                 <div class="card status-card">
                     <div class="card-body text-center">
                         <h5><i class="bi bi-activity"></i> وضعیت اتصال</h5>
@@ -376,11 +262,11 @@
                             </div>
                             <div class="mb-2">
                                 <h6>تعداد داده‌ها</h6>
-                                <div class="stat-value" id="dataCount">0</div>
+                                <div class="sensor-value" style="font-size: 2rem;" id="dataCount">0</div>
                             </div>
                             <div>
-                                <h6>مدت زمان اتصال</h6>
-                                <div id="uptime">--</div>
+                                <h6>قطع‌شدگی‌ها</h6>
+                                <div id="disconnectCount">0</div>
                             </div>
                         </div>
                     </div>
@@ -391,46 +277,9 @@
         <!-- نمودار -->
         <div class="card mb-4">
             <div class="card-body">
-                <h5 class="mb-3"><i class="bi bi-graph-up"></i> نمودار تغییرات در ۲۴ ساعت گذشته</h5>
+                <h5 class="mb-3"><i class="bi bi-graph-up"></i> نمودار تغییرات</h5>
                 <div class="chart-container">
                     <canvas id="sensorChart"></canvas>
-                </div>
-                <div id="chartLoading" class="loading" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <div class="mt-2">در حال بارگذاری نمودار...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- آمار و اطلاعات -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="mb-3"><i class="bi bi-bar-chart"></i> آمار و اطلاعات</h5>
-                <div class="stats-grid">
-                    <div class="stat-item bg-primary text-white">
-                        <div class="stat-label">میانگین رطوبت</div>
-                        <div class="stat-value" id="avgHumidity">--%</div>
-                    </div>
-                    <div class="stat-item bg-success text-white">
-                        <div class="stat-label">دستگاه آنلاین</div>
-                        <div class="stat-value" id="onlineTime">--</div>
-                    </div>
-                    <div class="stat-item bg-warning text-white">
-                        <div class="stat-label">تغییرات دما</div>
-                        <div class="stat-value" id="tempRange">--°C</div>
-                    </div>
-                    <div class="stat-item bg-info text-white">
-                        <div class="stat-label">نرخ آپدیت</div>
-                        <div class="stat-value" id="updateRate">--/ساعت</div>
-                    </div>
-                    <div class="stat-item bg-danger text-white">
-                        <div class="stat-label">توقف‌های اتصال</div>
-                        <div class="stat-value" id="disconnectCount">0</div>
-                    </div>
-                    <div class="stat-item bg-secondary text-white">
-                        <div class="stat-label">بازه زمانی</div>
-                        <div class="stat-value" id="timeRange">--</div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -438,16 +287,8 @@
         <!-- جدول داده‌ها -->
         <div class="card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0"><i class="bi bi-table"></i> تاریخچه داده‌ها</h5>
-                    <div>
-                        <span class="badge bg-primary me-2" id="totalRecords">0 رکورد</span>
-                        <button class="btn btn-sm btn-outline-primary" onclick="toggleDataTable()">
-                            <i class="bi bi-arrows-expand"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="data-table">
+                <h5 class="mb-3"><i class="bi bi-table"></i> تاریخچه داده‌ها (آخرین ۱۰ مورد)</h5>
+                <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
@@ -455,19 +296,13 @@
                                 <th>زمان</th>
                                 <th>دما (°C)</th>
                                 <th>رطوبت (%)</th>
-                                <th>وضعیت</th>
-                                <th>مدت گذشته</th>
+                                <th>وضعیت اتصال</th>
                             </tr>
                         </thead>
-                        <tbody id="dataTableBody">
-                            <!-- داده‌ها اینجا لود می‌شن -->
+                        <tbody id="dataTable">
+                            <!-- داده‌ها اینجا لود می‌شوند -->
                         </tbody>
                     </table>
-                </div>
-                <div id="noData" class="text-center py-5" style="display: none;">
-                    <i class="bi bi-database-exclamation" style="font-size: 3rem; opacity: 0.5;"></i>
-                    <p class="mt-3">داده‌ای برای نمایش وجود ندارد</p>
-                    <small>در حال اتصال به سنسور...</small>
                 </div>
             </div>
         </div>
@@ -477,67 +312,47 @@
         // ============ متغیرهای اصلی ============
         let sensorChart = null;
         let sensorData = [];
-        let refreshRate = 5000; // 5 ثانیه
         let refreshInterval = null;
         let lastSuccessfulFetch = null;
         let disconnectCount = 0;
         let isOnline = false;
-        let chartInitialized = false;
         
-        // ============ توابع کمکی ============
+        // ============ توابع اصلی ============
         
-        // تابع برای دور زدن CORS با استفاده از proxy
-        async function fetchWithCORSProxy(url) {
-            const proxies = [
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-                `https://corsproxy.io/?${encodeURIComponent(url)}`,
-                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
-            ];
-            
-            for (let proxyUrl of proxies) {
-                try {
-                    const response = await fetch(proxyUrl, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        return await response.json();
-                    }
-                } catch (error) {
-                    console.warn(`Proxy failed: ${proxyUrl}`, error);
-                    continue;
-                }
-            }
-            
-            throw new Error('تمام proxyها با شکست مواجه شدند');
-        }
-        
-        // تابع اصلی بارگذاری داده‌ها
+        // تابع اصلی بارگذاری داده‌ها با jsDelivr (حل CORS)
         async function loadSensorData() {
             try {
                 console.log('📥 دریافت داده‌ها...');
                 
-                // نمایش وضعیت لودینگ
-                updateConnectionStatus('loading');
+                // استفاده از jsDelivr CDN که مشکل CORS ندارد
+                const dataUrl = 'https://cdn.jsdelivr.net/gh/alefadham-droid/sensor-dashboard/data/sensor-data.json';
+                // اضافه کردن timestamp تصادفی برای جلوگیری از کش مرورگر
+                const cacheBuster = `?t=${Date.now()}`;
                 
-                const dataUrl = 'https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/sensor-data.json';
+                const response = await fetch(dataUrl + cacheBuster, {
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
                 
-                // استفاده از proxy برای حل CORS
-                const data = await fetchWithCORSProxy(dataUrl);
+                if (!response.ok) {
+                    throw new Error(`خطای HTTP: ${response.status}`);
+                }
                 
-                // ذخیره زمان موفقیت‌آمیز
+                const data = await response.json();
                 lastSuccessfulFetch = Date.now();
                 
-                console.log(`✅ داده‌ها دریافت شد (${Array.isArray(data) ? data.length : 'N/A'} رکورد)`);
+                console.log(`✅ داده‌ها دریافت شد (${Array.isArray(data) ? data.length : 0} رکورد)`);
                 
                 // پردازش داده‌ها
                 processData(data);
                 
                 // آپدیت وضعیت آنلاین
                 updateConnectionStatus('online');
+                
+                // آپدیت زمان
+                updateLastUpdateTime();
                 
                 return true;
                 
@@ -554,26 +369,34 @@
                     updateDisconnectCount();
                 }
                 
+                // نمایش پیام خطا
+                showErrorMessage(error);
+                
                 return false;
             }
         }
         
         // پردازش داده‌ها
         function processData(data) {
-            if (!Array.isArray(data) || data.length === 0) {
-                showNoData();
+            // اگر داده آرایه نیست
+            if (!Array.isArray(data)) {
+                console.warn('داده‌ها آرایه نیستند:', data);
+                showNoDataMessage();
                 return;
             }
             
             sensorData = data;
             
-            // مخفی کردن پیام "بدون داده"
-            document.getElementById('noData').style.display = 'none';
+            // اگر داده نداریم
+            if (sensorData.length === 0) {
+                showNoDataMessage();
+                return;
+            }
             
-            // مرتب کردن از جدید به قدیم
+            // مرتب کردن از جدید به قدیم بر اساس unix_time یا id
             sensorData.sort((a, b) => {
-                const timeA = a.unix_time || a.timestamp || 0;
-                const timeB = b.unix_time || b.timestamp || 0;
+                const timeA = a.unix_time || a.id || 0;
+                const timeB = b.unix_time || b.id || 0;
                 return timeB - timeA;
             });
             
@@ -582,18 +405,14 @@
             updateAverages();
             updateChart();
             updateTable();
-            updateStats();
-            updateTimeInfo();
+            updateMinMaxValues();
             
-            // آپدیت شمارنده داده‌ها
+            // آپدیت تعداد داده‌ها
             document.getElementById('dataCount').textContent = sensorData.length;
-            document.getElementById('totalRecords').textContent = `${sensorData.length} رکورد`;
         }
         
         // آپدیت مقادیر فعلی
         function updateCurrentValues() {
-            if (sensorData.length === 0) return;
-            
             const latest = sensorData[0];
             
             // دما
@@ -614,34 +433,19 @@
             if (latest.timestamp) {
                 document.getElementById('lastDataTime').textContent = latest.timestamp;
             }
-            
-            // محاسبه min/max
-            updateMinMaxValues();
         }
         
         // آپدیت میانگین‌ها
         function updateAverages() {
-            if (sensorData.length === 0) return;
-            
             // محاسبه میانگین دما (داده‌های 1 ساعت گذشته)
             const oneHourAgo = Date.now() / 1000 - 3600;
             const recentTemps = sensorData
-                .filter(d => d.unix_time > oneHourAgo && d.temperature)
+                .filter(d => (d.unix_time || 0) > oneHourAgo && d.temperature)
                 .map(d => d.temperature);
             
             if (recentTemps.length > 0) {
                 const avgTemp = recentTemps.reduce((a, b) => a + b, 0) / recentTemps.length;
                 document.getElementById('avgTemp').textContent = avgTemp.toFixed(1);
-            }
-            
-            // محاسبه میانگین رطوبت
-            const recentHums = sensorData
-                .filter(d => d.unix_time > oneHourAgo && d.humidity)
-                .map(d => d.humidity);
-            
-            if (recentHums.length > 0) {
-                const avgHum = recentHums.reduce((a, b) => a + b, 0) / recentHums.length;
-                document.getElementById('avgHumidity').textContent = `${avgHum.toFixed(1)}%`;
             }
         }
         
@@ -656,22 +460,22 @@
                 return;
             }
             
-            // فقط 24 داده آخر (یا کمتر)
-            const chartData = sensorData.slice(0, 24).reverse();
+            // فقط 20 داده آخر
+            const chartData = sensorData.slice(0, 20).reverse();
             
-            const labels = chartData.map(d => {
-                if (d.timestamp) return d.timestamp;
-                if (d.id) return `#${d.id}`;
-                const date = new Date(d.unix_time * 1000);
-                return date.toLocaleTimeString('fa-IR');
-            });
-            
+            const labels = chartData.map(d => d.timestamp || `#${d.id || ''}`);
             const temps = chartData.map(d => d.temperature || 0);
             const hums = chartData.map(d => d.humidity || 0);
             
             const ctx = document.getElementById('sensorChart').getContext('2d');
             
-            if (!chartInitialized) {
+            if (sensorChart) {
+                // آپدیت نمودار موجود
+                sensorChart.data.labels = labels;
+                sensorChart.data.datasets[0].data = temps;
+                sensorChart.data.datasets[1].data = hums;
+                sensorChart.update('quiet');
+            } else {
                 // ایجاد نمودار جدید
                 sensorChart = new Chart(ctx, {
                     type: 'line',
@@ -683,138 +487,38 @@
                                 data: temps,
                                 borderColor: '#ff6b6b',
                                 backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                                borderWidth: 3,
+                                borderWidth: 2,
                                 tension: 0.4,
-                                fill: true,
-                                pointRadius: 4,
-                                pointHoverRadius: 7,
-                                pointBackgroundColor: '#ff6b6b'
+                                fill: true
                             },
                             {
                                 label: 'رطوبت (%)',
                                 data: hums,
                                 borderColor: '#4d96ff',
                                 backgroundColor: 'rgba(77, 150, 255, 0.1)',
-                                borderWidth: 3,
+                                borderWidth: 2,
                                 tension: 0.4,
-                                fill: true,
-                                pointRadius: 4,
-                                pointHoverRadius: 7,
-                                pointBackgroundColor: '#4d96ff',
-                                yAxisID: 'y1'
+                                fill: true
                             }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false
-                        },
                         plugins: {
                             legend: {
                                 position: 'top',
-                                rtl: true,
-                                labels: {
-                                    font: {
-                                        family: 'Vazir',
-                                        size: 14
-                                    },
-                                    padding: 20
-                                }
-                            },
-                            tooltip: {
-                                rtl: true,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleFont: {
-                                    family: 'Vazir',
-                                    size: 14
-                                },
-                                bodyFont: {
-                                    family: 'Vazir',
-                                    size: 13
-                                },
-                                padding: 12
+                                rtl: true
                             }
-                        },
-                        scales: {
-                            x: {
-                                ticks: {
-                                    font: {
-                                        family: 'Vazir',
-                                        size: 12
-                                    },
-                                    maxRotation: 45
-                                },
-                                grid: {
-                                    color: 'rgba(0,0,0,0.05)'
-                                }
-                            },
-                            y: {
-                                type: 'linear',
-                                display: true,
-                                position: 'left',
-                                title: {
-                                    display: true,
-                                    text: 'دما (°C)',
-                                    font: {
-                                        family: 'Vazir',
-                                        size: 14
-                                    }
-                                },
-                                ticks: {
-                                    font: {
-                                        family: 'Vazir'
-                                    }
-                                },
-                                grid: {
-                                    color: 'rgba(0,0,0,0.05)'
-                                }
-                            },
-                            y1: {
-                                type: 'linear',
-                                display: true,
-                                position: 'right',
-                                title: {
-                                    display: true,
-                                    text: 'رطوبت (%)',
-                                    font: {
-                                        family: 'Vazir',
-                                        size: 14
-                                    }
-                                },
-                                ticks: {
-                                    font: {
-                                        family: 'Vazir'
-                                    }
-                                },
-                                grid: {
-                                    drawOnChartArea: false
-                                }
-                            }
-                        },
-                        animation: {
-                            duration: 1000,
-                            easing: 'easeOutQuart'
                         }
                     }
                 });
-                
-                chartInitialized = true;
-                
-            } else {
-                // آپدیت داده‌های نمودار موجود
-                sensorChart.data.labels = labels;
-                sensorChart.data.datasets[0].data = temps;
-                sensorChart.data.datasets[1].data = hums;
-                sensorChart.update();
             }
         }
         
         // آپدیت جدول
         function updateTable() {
-            const tbody = document.getElementById('dataTableBody');
+            const tbody = document.getElementById('dataTable');
             
             // فقط 10 داده آخر
             const displayData = sensorData.slice(0, 10);
@@ -822,10 +526,6 @@
             let tableHTML = '';
             
             displayData.forEach((item, index) => {
-                const temp = item.temperature || 0;
-                const hum = item.humidity || 0;
-                const timeAgo = calculateTimeAgo(item.unix_time);
-                
                 // تشخیص وضعیت اتصال برای هر ردیف
                 const rowStatus = getRowStatus(item.unix_time);
                 
@@ -833,83 +533,18 @@
                     <tr>
                         <td>${item.id || index + 1}</td>
                         <td>${item.timestamp || '--:--:--'}</td>
-                        <td>
-                            <span class="badge" style="background: ${getTemperatureColor(temp)}">
-                                ${temp.toFixed(1)}°C
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge" style="background: ${getHumidityColor(hum)}">
-                                ${hum.toFixed(1)}%
-                            </span>
-                        </td>
+                        <td>${item.temperature ? item.temperature.toFixed(1) : '--'}</td>
+                        <td>${item.humidity ? item.humidity.toFixed(1) : '--'}</td>
                         <td>
                             <span class="badge bg-${rowStatus.color}">
-                                <i class="bi bi-${rowStatus.icon}"></i>
                                 ${rowStatus.text}
                             </span>
                         </td>
-                        <td>${timeAgo}</td>
                     </tr>
                 `;
             });
             
             tbody.innerHTML = tableHTML;
-        }
-        
-        // آپدیت آمار
-        function updateStats() {
-            if (sensorData.length === 0) return;
-            
-            // محدوده دما
-            const temps = sensorData.map(d => d.temperature).filter(t => t != null);
-            if (temps.length > 0) {
-                const maxTemp = Math.max(...temps);
-                const minTemp = Math.min(...temps);
-                document.getElementById('tempRange').textContent = `${(maxTemp - minTemp).toFixed(1)}°C`;
-            }
-            
-            // نرخ آپدیت (داده در ساعت)
-            if (sensorData.length > 1) {
-                const firstTime = sensorData[sensorData.length - 1].unix_time;
-                const lastTime = sensorData[0].unix_time;
-                const hoursDiff = (lastTime - firstTime) / 3600;
-                const ratePerHour = hoursDiff > 0 ? (sensorData.length / hoursDiff).toFixed(1) : sensorData.length;
-                document.getElementById('updateRate').textContent = `${ratePerHour}/ساعت`;
-            }
-            
-            // بازه زمانی
-            if (sensorData.length > 1) {
-                const first = sensorData[sensorData.length - 1];
-                const last = sensorData[0];
-                document.getElementById('timeRange').textContent = 
-                    `${first.timestamp || 'شروع'} تا ${last.timestamp || 'کنون'}`;
-            }
-            
-            // مدت زمان آنلاین
-            if (lastSuccessfulFetch) {
-                const onlineTime = Math.floor((Date.now() - lastSuccessfulFetch) / 1000);
-                document.getElementById('onlineTime').textContent = formatDuration(onlineTime);
-            }
-        }
-        
-        // آپدیت اطلاعات زمانی
-        function updateTimeInfo() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('fa-IR');
-            const dateStr = now.toLocaleDateString('fa-IR');
-            
-            document.getElementById('lastUpdate').innerHTML = 
-                `<i class="bi bi-clock"></i> ${timeStr} - ${dateStr}`;
-            
-            // آپدیت زمان گذشته از آخرین داده
-            if (sensorData.length > 0) {
-                const lastDataTime = sensorData[0].unix_time;
-                if (lastDataTime) {
-                    const timeAgo = calculateTimeAgo(lastDataTime);
-                    document.getElementById('timeAgo').textContent = `${timeAgo} پیش`;
-                }
-            }
         }
         
         // آپدیت وضعیت اتصال
@@ -923,6 +558,15 @@
                     statusElement.className = 'connection-status connection-online';
                     statusElement.innerHTML = '<i class="bi bi-wifi"></i> آنلاین';
                     isOnline = true;
+                    
+                    // آپدیت زمان گذشته
+                    if (sensorData.length > 0) {
+                        const lastTime = sensorData[0].unix_time;
+                        if (lastTime) {
+                            const timeAgo = calculateTimeAgo(lastTime);
+                            document.getElementById('timeAgo').textContent = `${timeAgo} پیش`;
+                        }
+                    }
                     break;
                     
                 case 'offline':
@@ -930,16 +574,6 @@
                     statusElement.className = 'connection-status connection-offline';
                     statusElement.innerHTML = '<i class="bi bi-wifi-off"></i> آفلاین';
                     isOnline = false;
-                    break;
-                    
-                case 'loading':
-                    indicator.className = 'status-indicator';
-                    indicator.style.background = '#ffc107';
-                    statusElement.className = 'connection-status';
-                    statusElement.style.background = 'rgba(255, 193, 7, 0.2)';
-                    statusElement.style.color = '#ffc107';
-                    statusElement.style.borderColor = '#ffc107';
-                    statusElement.innerHTML = '<i class="bi bi-arrow-repeat"></i> در حال اتصال...';
                     break;
             }
         }
@@ -965,16 +599,12 @@
             document.getElementById('disconnectCount').textContent = disconnectCount;
         }
         
-        // نمایش پیام "بدون داده"
-        function showNoData() {
-            document.getElementById('noData').style.display = 'block';
-            document.getElementById('dataTableBody').innerHTML = '';
-            
-            // ریست کردن مقادیر
-            document.getElementById('currentTemp').textContent = '--';
-            document.getElementById('currentHum').textContent = '--';
-            document.getElementById('avgTemp').textContent = '--';
-            document.getElementById('dataCount').textContent = '0';
+        // آپدیت زمان
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('fa-IR');
+            document.getElementById('lastUpdate').innerHTML = 
+                `<i class="bi bi-clock"></i> <small>آخرین بروزرسانی: ${timeStr}</small>`;
         }
         
         // ============ توابع کمکی ============
@@ -997,17 +627,6 @@
             }
         }
         
-        // فرمت مدت زمان
-        function formatDuration(seconds) {
-            if (seconds < 60) {
-                return `${seconds} ثانیه`;
-            } else if (seconds < 3600) {
-                return `${Math.floor(seconds / 60)} دقیقه`;
-            } else {
-                return `${Math.floor(seconds / 3600)} ساعت`;
-            }
-        }
-        
         // رنگ بر اساس دما
         function getTemperatureColor(temp) {
             if (temp < 20) return '#4d96ff'; // آبی (سرد)
@@ -1026,84 +645,59 @@
         
         // وضعیت هر ردیف در جدول
         function getRowStatus(unixTime) {
-            if (!unixTime) return { color: 'secondary', icon: 'question-circle', text: 'نامشخص' };
+            if (!unixTime) return { color: 'secondary', text: 'نامشخص' };
             
             const now = Math.floor(Date.now() / 1000);
             const diff = now - unixTime;
             
             if (diff < 300) { // 5 دقیقه
-                return { color: 'success', icon: 'check-circle', text: 'آنلاین' };
+                return { color: 'success', text: 'آنلاین' };
             } else if (diff < 1800) { // 30 دقیقه
-                return { color: 'warning', icon: 'clock-history', text: 'قدیمی' };
+                return { color: 'warning', text: 'قدیمی' };
             } else {
-                return { color: 'danger', icon: 'exclamation-triangle', text: 'آفلاین' };
+                return { color: 'danger', text: 'آفلاین' };
             }
         }
         
-        // تغییر نرخ رفرش
-        function changeRefreshRate(seconds) {
-            refreshRate = seconds * 1000;
-            
-            // آپدیت دکمه‌های فعال
-            document.querySelectorAll('.btn-group .btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // ریست interval
-            if (document.getElementById('autoRefresh').checked) {
-                startAutoRefresh();
-            }
-            
-            // نمایش پیام
-            showNotification(`نرخ رفرش به ${seconds} ثانیه تغییر کرد`);
+        // نمایش پیام خطا
+        function showErrorMessage(error) {
+            document.getElementById('dataTable').innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            خطا در دریافت داده‌ها
+                            <br>
+                            <small>${error.message || 'خطای ناشناخته'}</small>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        // نمایش پیام "بدون داده"
+        function showNoDataMessage() {
+            document.getElementById('dataTable').innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            داده‌ای برای نمایش وجود ندارد
+                        </div>
+                    </td>
+                </tr>
+            `;
         }
         
         // شروع Auto-Refresh
-        function startAutoRefresh() {
+        function startAutoRefresh(interval = 10000) {
             if (refreshInterval) {
                 clearInterval(refreshInterval);
             }
             
             refreshInterval = setInterval(() => {
-                if (document.getElementById('autoRefresh').checked) {
-                    loadSensorData();
-                }
-            }, refreshRate);
-        }
-        
-        // نمایش نوتیفیکیشن
-        function showNotification(message) {
-            // ایجاد عنصر نوتیفیکیشن
-            const notification = document.createElement('div');
-            notification.className = 'alert alert-custom alert-info position-fixed top-0 end-0 m-3';
-            notification.style.zIndex = '9999';
-            notification.innerHTML = `
-                <i class="bi bi-info-circle me-2"></i>
-                ${message}
-                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // حذف خودکار بعد از 3 ثانیه
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 3000);
-        }
-        
-        // تغییر سایز جدول
-        function toggleDataTable() {
-            const table = document.querySelector('.data-table');
-            if (table.style.maxHeight === '800px') {
-                table.style.maxHeight = '400px';
-                showNotification('جدول به حالت جمع‌شده بازگشت');
-            } else {
-                table.style.maxHeight = '800px';
-                showNotification('جدول به حالت باز تغییر کرد');
-            }
+                loadSensorData();
+            }, interval);
         }
         
         // ============ رویدادها ============
@@ -1114,25 +708,12 @@
             // بارگذاری اولیه
             loadSensorData();
             
-            // شروع Auto-Refresh
-            startAutoRefresh();
+            // شروع Auto-Refresh هر 10 ثانیه
+            startAutoRefresh(10000);
             
             // رویداد دکمه رفرش
             document.getElementById('refreshBtn').addEventListener('click', () => {
                 loadSensorData();
-                showNotification('در حال بروزرسانی دستی...');
-            });
-            
-            // رویداد تغییر Auto-Refresh
-            document.getElementById('autoRefresh').addEventListener('change', function() {
-                if (this.checked) {
-                    startAutoRefresh();
-                    showNotification('Auto-Refresh فعال شد');
-                } else {
-                    clearInterval(refreshInterval);
-                    refreshInterval = null;
-                    showNotification('Auto-Refresh غیرفعال شد');
-                }
             });
             
             // کلیدهای میانبر
@@ -1141,16 +722,8 @@
                     e.preventDefault();
                     loadSensorData();
                 }
-                if (e.key === 't' && e.ctrlKey) {
-                    e.preventDefault();
-                    document.getElementById('autoRefresh').click();
-                }
             });
         });
-        
-        // ثبت توابع در scope سراسری
-        window.changeRefreshRate = changeRefreshRate;
-        window.toggleDataTable = toggleDataTable;
         
     </script>
 
