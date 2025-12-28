@@ -3,910 +3,498 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 داشبورد سنسور AHT20 - داده‌های زنده</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>داشبورد سنسور ESP32</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* استایل‌ها مانند قبل */
         :root {
-            --primary: #1a237e;
-            --secondary: #2962ff;
-            --danger: #ff5252;
-            --success: #00c853;
-            --warning: #ffab00;
-            --dark: #263238;
-            --light: #f5f7ff;
-            --gray: #78909c;
-        }
-        
-        * {
-            font-family: 'Vazirmatn', 'Segoe UI', sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
         }
         
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e3f2fd 100%);
+            font-family: 'Vazir', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            color: var(--dark);
         }
         
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 25px 30px;
-            border-radius: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(26, 35, 126, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        
-        .header-info h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .header-info p {
-            opacity: 0.9;
-            font-size: 1.1rem;
-        }
-        
-        .live-status {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px 25px;
+        .card {
             border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--success);
-            box-shadow: 0 0 10px var(--success);
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .status-dot.disconnected {
-            background: var(--danger);
-            box-shadow: 0 0 10px var(--danger);
-            animation: none;
-        }
-        
-        .status-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-        
-        .status-card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            border-top: 6px solid var(--secondary);
-            transition: transform 0.3s;
-        }
-        
-        .status-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .status-card.temperature {
-            border-color: var(--danger);
-        }
-        
-        .status-card.humidity {
-            border-color: var(--success);
-        }
-        
-        .status-card.sensor {
-            border-color: var(--warning);
-        }
-        
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            border: none;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s;
             margin-bottom: 20px;
         }
         
-        .card-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.3rem;
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+        
+        .temp-card {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            color: white;
+        }
+        
+        .hum-card {
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            color: white;
+        }
+        
+        .data-card {
+            background: white;
             color: var(--dark);
         }
         
-        .value-container {
-            text-align: center;
-            margin: 25px 0;
-        }
-        
-        .current-value {
-            font-size: 4rem;
-            font-weight: 800;
-            line-height: 1;
-            direction: ltr;
-        }
-        
-        .current-value.temp {
-            color: var(--danger);
-            background: linear-gradient(45deg, var(--danger), #ff8a80);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .current-value.hum {
-            color: var(--success);
-            background: linear-gradient(45deg, var(--success), #69f0ae);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .sensor-value {
+            font-size: 3rem;
+            font-weight: bold;
         }
         
         .unit {
-            font-size: 1.5rem;
-            color: var(--gray);
-            margin-right: 5px;
+            font-size: 1.2rem;
+            opacity: 0.9;
         }
         
-        .trend {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-            border-radius: 20px;
+        .last-update {
             font-size: 0.9rem;
-            font-weight: 600;
-            margin-top: 15px;
-        }
-        
-        .trend.up {
-            background: rgba(255, 82, 82, 0.1);
-            color: var(--danger);
-        }
-        
-        .trend.down {
-            background: rgba(0, 200, 83, 0.1);
-            color: var(--success);
-        }
-        
-        .trend.stable {
-            background: rgba(120, 144, 156, 0.1);
-            color: var(--gray);
-        }
-        
-        .chart-section {
-            background: white;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
             border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            display: inline-block;
         }
         
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .chart-container {
-            height: 350px;
-            position: relative;
-        }
-        
-        .table-section {
-            background: white;
+        .status-badge {
+            padding: 5px 15px;
             border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            overflow-x: auto;
+            font-weight: bold;
+        }
+        
+        .online {
+            background: #28a745;
+            color: white;
+        }
+        
+        .offline {
+            background: #dc3545;
+            color: white;
         }
         
         table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 800px;
+            font-size: 0.9rem;
         }
         
-        thead {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        table th {
+            background: var(--primary);
             color: white;
         }
         
-        th {
-            padding: 18px;
-            text-align: center;
-            font-weight: 600;
-        }
-        
-        th:first-child {
-            border-top-right-radius: 12px;
-        }
-        
-        th:last-child {
-            border-top-left-radius: 12px;
-        }
-        
-        td {
-            padding: 18px;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-        }
-        
-        tr:hover {
-            background: #f8f9ff;
-        }
-        
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 12px 25px;
+        .refresh-btn {
+            background: var(--primary);
             border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
             transition: all 0.3s;
-            font-size: 1rem;
         }
         
-        .btn-primary {
+        .refresh-btn:hover {
             background: var(--secondary);
-            color: white;
-        }
-        
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-        
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 25px;
-            color: var(--gray);
-            font-size: 0.95rem;
-        }
-        
-        .update-time {
-            background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
-            padding: 15px;
-            border-radius: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 15px;
-            color: var(--dark);
-            font-weight: 600;
+            transform: scale(1.05);
         }
         
         @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                text-align: center;
-                padding: 20px;
+            .sensor-value {
+                font-size: 2rem;
             }
             
-            .current-value {
-                font-size: 3rem;
-            }
-            
-            .status-cards {
-                grid-template-columns: 1fr;
-            }
-            
-            .chart-header {
-                flex-direction: column;
-                align-items: flex-start;
+            body {
+                padding: 10px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="header-info">
-                <h1><i class="fas fa-temperature-high"></i> داشبورد سنسور AHT20</h1>
-                <p>نمایش زنده داده‌های دما و رطوبت - به‌روزرسانی خودکار</p>
-            </div>
-            <div class="live-status">
-                <div class="status-indicator">
-                    <div class="status-dot" id="status-dot"></div>
-                    <span id="status-text">در حال اتصال...</span>
-                </div>
-                <div>آخرین به‌روزرسانی: <span id="last-update">--:--:--</span></div>
-            </div>
-        </header>
-        
-        <div class="status-cards">
-            <div class="status-card temperature">
-                <div class="card-header">
-                    <h2 class="card-title"><i class="fas fa-thermometer-half"></i> دمای فعلی</h2>
-                    <div class="trend" id="temp-trend">ثابت</div>
-                </div>
-                <div class="value-container">
-                    <div class="current-value temp"><span id="current-temp">--</span><span class="unit">°C</span></div>
-                    <div>میانگین: <span id="avg-temp">--</span>°C</div>
+        <!-- هدر -->
+        <div class="card header-card">
+            <div class="card-body text-center">
+                <h1><i class="bi bi-graph-up"></i> داشبورد مانیتورینگ ESP32</h1>
+                <p class="mb-0">
+                    <i class="bi bi-cpu"></i> سنسور AHT20 | 
+                    <i class="bi bi-wifi"></i> WiFi | 
+                    <i class="bi bi-github"></i> GitHub Storage
+                </p>
+                <div class="mt-3">
+                    <button id="refreshBtn" class="refresh-btn">
+                        <i class="bi bi-arrow-clockwise"></i> بروزرسانی
+                    </button>
+                    <span id="lastUpdate" class="last-update ms-3">در حال بارگذاری...</span>
                 </div>
             </div>
-            
-            <div class="status-card humidity">
-                <div class="card-header">
-                    <h2 class="card-title"><i class="fas fa-tint"></i> رطوبت فعلی</h2>
-                    <div class="trend" id="hum-trend">ثابت</div>
-                </div>
-                <div class="value-container">
-                    <div class="current-value hum"><span id="current-hum">--</span><span class="unit">%</span></div>
-                    <div>میانگین: <span id="avg-hum">--</span>%</div>
+        </div>
+
+        <!-- کارت‌های اطلاعات -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card temp-card">
+                    <div class="card-body text-center">
+                        <h5><i class="bi bi-thermometer-half"></i> دمای فعلی</h5>
+                        <div class="sensor-value" id="currentTemp">--</div>
+                        <div class="unit">درجه سانتی‌گراد</div>
+                        <div class="mt-3">
+                            <small>حداکثر: <span id="maxTemp">--</span>°C</small> | 
+                            <small>حداقل: <span id="minTemp">--</span>°C</small>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="status-card sensor">
-                <div class="card-header">
-                    <h2 class="card-title"><i class="fas fa-microchip"></i> اطلاعات سنسور</h2>
-                </div>
-                <div class="value-container">
-                    <div style="font-size: 2.5rem; font-weight: bold; color: var(--warning);">AHT20</div>
-                    <div style="margin-top: 20px;">
-                        <div>آخرین بروزرسانی: <span id="last-data-age">--</span> ثانیه پیش</div>
-                        <div>دامنه دما: <span id="temp-range">--</span>°C</div>
-                        <div>دامنه رطوبت: <span id="hum-range">--</span>%</div>
+            <div class="col-md-6">
+                <div class="card hum-card">
+                    <div class="card-body text-center">
+                        <h5><i class="bi bi-moisture"></i> رطوبت فعلی</h5>
+                        <div class="sensor-value" id="currentHum">--</div>
+                        <div class="unit">درصد</div>
+                        <div class="mt-3">
+                            <small>حداکثر: <span id="maxHum">--</span>%</small> | 
+                            <small>حداقل: <span id="minHum">--</span>%</small>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="controls">
-            <button class="btn btn-primary" onclick="loadData()">
-                <i class="fas fa-sync"></i> بارگذاری مجدد
-            </button>
-            <button class="btn btn-success" onclick="addMockData()">
-                <i class="fas fa-plus"></i> افزودن داده تست
-            </button>
-            <button class="btn btn-warning" onclick="resetData()">
-                <i class="fas fa-trash"></i> بازنشانی داده‌ها
-            </button>
-            <div style="margin-right: auto;">
-                <label for="refresh-interval">بازه به‌روزرسانی:</label>
-                <select id="refresh-interval" onchange="changeRefreshInterval(this.value)">
-                    <option value="5000">5 ثانیه</option>
-                    <option value="10000" selected>10 ثانیه</option>
-                    <option value="30000">30 ثانیه</option>
-                    <option value="60000">1 دقیقه</option>
-                    <option value="0">غیرفعال</option>
-                </select>
+
+        <!-- نمودار -->
+        <div class="card data-card">
+            <div class="card-body">
+                <h5><i class="bi bi-graph-up"></i> نمودار تغییرات</h5>
+                <canvas id="sensorChart" height="100"></canvas>
             </div>
         </div>
-        
-        <section class="chart-section">
-            <div class="chart-header">
-                <h2><i class="fas fa-chart-line"></i> نمودار تغییرات</h2>
-                <div>
-                    <button class="btn" onclick="toggleChartType()" style="background: #f5f5f5;">
-                        <i class="fas fa-exchange-alt"></i> تغییر نوع نمودار
-                    </button>
+
+        <!-- جدول داده‌ها -->
+        <div class="card data-card">
+            <div class="card-body">
+                <h5><i class="bi bi-table"></i> تاریخچه داده‌ها</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>زمان</th>
+                                <th>دما (°C)</th>
+                                <th>رطوبت (%)</th>
+                                <th>سنسور</th>
+                                <th>وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTable">
+                            <!-- داده‌ها اینجا لود می‌شن -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="chart-container">
-                <canvas id="sensorChart"></canvas>
+        </div>
+
+        <!-- وضعیت سیستم -->
+        <div class="card data-card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <h6><i class="bi bi-wifi"></i> وضعیت ESP32</h6>
+                        <span id="deviceStatus" class="status-badge online">آنلاین</span>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <h6><i class="bi bi-database"></i> تعداد داده‌ها</h6>
+                        <span id="dataCount" class="sensor-value">0</span>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <h6><i class="bi bi-clock"></i> آخرین آپدیت</h6>
+                        <span id="lastDataTime">--:--:--</span>
+                    </div>
+                </div>
             </div>
-        </section>
-        
-        <section class="table-section">
-            <h2><i class="fas fa-table"></i> تاریخچه داده‌ها</h2>
-            <div id="loading" style="text-align: center; padding: 40px; color: var(--secondary);">
-                <i class="fas fa-spinner fa-spin"></i> در حال بارگذاری داده‌ها...
+        </div>
+
+        <!-- فوتر -->
+        <div class="text-center mt-4">
+            <div class="card data-card">
+                <div class="card-body">
+                    <p class="mb-0">
+                        <i class="bi bi-github"></i> 
+                        سورس کد: 
+                        <a href="https://github.com/alefadham-droid/sensor-dashboard" target="_blank">
+                            github.com/alefadham-droid/sensor-dashboard
+                        </a>
+                        | 
+                        <i class="bi bi-cpu"></i>
+                        ESP32 + AHT20
+                    </p>
+                </div>
             </div>
-            <div id="error" style="display: none; text-align: center; padding: 40px; color: var(--danger);"></div>
-            <table id="data-table" style="display: none;">
-                <thead>
-                    <tr>
-                        <th>ردیف</th>
-                        <th>زمان ثبت</th>
-                        <th>دما (°C)</th>
-                        <th>رطوبت (%)</th>
-                        <th>سنسور</th>
-                        <th>عملیات</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body"></tbody>
-            </table>
-        </section>
-        
-        <footer class="footer">
-            <div>داشبورد مانیتورینگ سنسور AHT20</div>
-            <div class="update-time">
-                <i class="far fa-clock"></i>
-                <span>آخرین به‌روزرسانی: <span id="update-time-text">--:--:--</span></span>
-            </div>
-            <div style="margin-top: 15px; font-size: 0.85rem;">
-                وضعیت سنسور: <span id="sensor-status-footer">نامشخص</span>
-            </div>
-        </footer>
+        </div>
     </div>
 
     <script>
-        // تنظیمات بهینه شده
-        const CONFIG = {
-            // استفاده از CDN برای سرعت بیشتر
-            dataUrl: 'https://cdn.jsdelivr.net/gh/alefadham-droid/sensor-dashboard@main/data/sensor-data.json',
-            
-            // آدرس GitHub API برای آپلود داده
-            githubApi: 'https://api.github.com/repos/alefadham-droid/sensor-dashboard/contents/data/sensor-data.json',
-            
-            // برای تست
-            backupUrl: './data/sensor-data.json',
-            
-            // تنظیمات جدید
-            refreshInterval: 10000, // کاهش به 10 ثانیه
-            fetchTimeout: 5000,     // کاهش timeout به 5 ثانیه
-            maxDataPoints: 50,
-            sensorTimeout: 120      // سنسور اگر 2 دقیقه داده جدید نداشته باشد، قطع شده
-        };
-        
-        // متغیرهای جهانی
+        let sensorChart;
         let sensorData = [];
-        let chart = null;
-        let chartType = 'line';
-        let refreshTimer = null;
-        let lastTemp = null;
-        let lastHum = null;
-        let lastDataTime = 0;
-        
-        // تابع اصلی بارگذاری داده (بهینه شده)
-        async function loadData() {
-            showLoading(true);
-            
+
+        // بارگذاری داده‌ها
+        async function loadSensorData() {
             try {
-                console.log('📡 در حال دریافت داده...');
+                console.log("📥 در حال دریافت داده‌ها...");
                 
-                // استفاده از cache busting
-                const url = CONFIG.dataUrl + `?t=${Date.now()}`;
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), CONFIG.fetchTimeout);
+                // لینک فایل داده‌ها - اصلاح شده
+                const dataUrl = 'https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/sensor-data.json';
                 
-                const response = await fetch(url, {
-                    signal: controller.signal,
-                    cache: 'no-cache'
-                });
-                
-                clearTimeout(timeoutId);
+                // اضافه کردن timestamp برای جلوگیری از cache
+                const timestamp = new Date().getTime();
+                const response = await fetch(dataUrl + '?t=' + timestamp);
                 
                 if (!response.ok) {
-                    throw new Error(`خطای HTTP: ${response.status}`);
+                    throw new Error(`خطا در دریافت: ${response.status}`);
                 }
                 
                 const data = await response.json();
+                console.log("✅ داده‌ها دریافت شد:", data);
                 
-                if (!Array.isArray(data)) {
-                    throw new Error('فرمت داده نامعتبر است');
-                }
+                // پردازش داده‌ها
+                processData(data);
                 
-                // بررسی وجود داده جدید
-                if (data.length > 0) {
-                    const latestData = data[data.length - 1];
-                    lastDataTime = latestData.timestamp;
+                // آپدیت زمان
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('fa-IR');
+                document.getElementById('lastUpdate').innerHTML = 
+                    `<i class="bi bi-clock"></i> آخرین بروزرسانی: ${timeStr}`;
                     
-                    // فقط اگر داده جدید باشد، بروزرسانی کن
-                    if (sensorData.length === 0 || 
-                        (sensorData.length > 0 && latestData.timestamp > sensorData[sensorData.length - 1].timestamp)) {
-                        
-                        sensorData = data.slice(-CONFIG.maxDataPoints);
-                        updateUI();
-                        updateChart();
-                        updateTable();
-                        updateLastUpdateTime();
-                    }
-                }
-                
-                // بررسی سلامت سنسور
-                checkSensorHealth();
-                showError(false);
-                console.log('✅ داده‌ها بررسی شدند');
-                
             } catch (error) {
-                console.error('❌ خطا در بارگذاری داده:', error);
-                showError(`خطا در بارگذاری داده: ${error.message}`);
+                console.error('❌ خطا در بارگذاری داده‌ها:', error);
+                document.getElementById('deviceStatus').className = 'status-badge offline';
+                document.getElementById('deviceStatus').textContent = 'آفلاین';
                 
-                // فقط در صورت نبود داده از نمونه استفاده کن
-                if (sensorData.length === 0) {
-                    useSampleData();
-                }
-                
-                // حتی در صورت خطا هم وضعیت سنسور را بررسی کن
-                checkSensorHealth();
-            } finally {
-                showLoading(false);
+                // نمایش خطا
+                document.getElementById('dataTable').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-danger">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            خطا در بارگذاری داده‌ها
+                            <br>
+                            <small>${error.message}</small>
+                        </td>
+                    </tr>
+                `;
             }
         }
-        
-        // بررسی سلامت سنسور
-        function checkSensorHealth() {
+
+        // پردازش داده‌ها
+        function processData(data) {
+            // ذخیره داده‌ها
+            sensorData = Array.isArray(data) ? data : [];
+            
+            console.log(`📊 تعداد رکوردها: ${sensorData.length}`);
+            
+            // اگر داده نداریم
             if (sensorData.length === 0) {
-                updateConnectionStatus(false, "بدون داده");
+                document.getElementById('dataTable').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            داده‌ای برای نمایش وجود ندارد
+                        </td>
+                    </tr>
+                `;
                 return;
             }
             
-            const latest = sensorData[sensorData.length - 1];
-            const now = Math.floor(Date.now() / 1000);
-            const dataAge = now - latest.timestamp;
-            
-            // به‌روزرسانی زمان آخرین داده
-            document.getElementById('last-data-age').textContent = dataAge;
-            
-            // اگر داده قدیمی‌تر از 2 دقیقه باشد
-            if (dataAge > CONFIG.sensorTimeout) {
-                updateConnectionStatus(false, `قطع شده (${Math.floor(dataAge/60)} دقیقه قبل)`);
-            } else if (dataAge > 60) {
-                updateConnectionStatus(true, "اتصال ضعیف");
-            } else {
-                updateConnectionStatus(true, "برقرار");
-            }
-            
-            // به‌روزرسانی فوتر
-            document.getElementById('sensor-status-footer').textContent = 
-                dataAge > CONFIG.sensorTimeout ? 'قطع' : 'متصل';
-        }
-        
-        // به‌روزرسانی وضعیت اتصال
-        function updateConnectionStatus(isConnected, message) {
-            const statusDot = document.getElementById('status-dot');
-            const statusText = document.getElementById('status-text');
-            
-            if (isConnected) {
-                statusDot.classList.remove('disconnected');
-                statusDot.style.background = 'var(--success)';
-                statusDot.style.boxShadow = '0 0 10px var(--success)';
-                statusDot.style.animation = 'pulse 2s infinite';
-            } else {
-                statusDot.classList.add('disconnected');
-                statusDot.style.background = 'var(--danger)';
-                statusDot.style.boxShadow = '0 0 10px var(--danger)';
-                statusDot.style.animation = 'none';
-            }
-            
-            statusText.textContent = message;
-        }
-        
-        // به‌روزرسانی UI
-        function updateUI() {
-            if (sensorData.length === 0) return;
-            
-            const latest = sensorData[sensorData.length - 1];
-            
-            // نمایش مقادیر فعلی
-            document.getElementById('current-temp').textContent = latest.temperature.toFixed(1);
-            document.getElementById('current-hum').textContent = latest.humidity.toFixed(1);
-            
-            // محاسبه روند تغییرات
-            if (lastTemp !== null) {
-                const tempTrend = latest.temperature - lastTemp;
-                updateTrend('temp-trend', tempTrend);
-            }
-            
-            if (lastHum !== null) {
-                const humTrend = latest.humidity - lastHum;
-                updateTrend('hum-trend', humTrend);
-            }
-            
-            // ذخیره مقادیر
-            lastTemp = latest.temperature;
-            lastHum = latest.humidity;
-            
-            // محاسبه آمار
-            const temps = sensorData.map(d => d.temperature);
-            const hums = sensorData.map(d => d.humidity);
-            
-            const avgTemp = (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1);
-            const avgHum = (hums.reduce((a, b) => a + b, 0) / hums.length).toFixed(1);
-            
-            const minTemp = Math.min(...temps).toFixed(1);
-            const maxTemp = Math.max(...temps).toFixed(1);
-            const minHum = Math.min(...hums).toFixed(1);
-            const maxHum = Math.max(...hums).toFixed(1);
-            
-            // به‌روزرسانی آمار
-            document.getElementById('avg-temp').textContent = avgTemp;
-            document.getElementById('avg-hum').textContent = avgHum;
-            document.getElementById('temp-range').textContent = `${minTemp} - ${maxTemp}`;
-            document.getElementById('hum-range').textContent = `${minHum} - ${maxHum}`;
-        }
-        
-        // به‌روزرسانی روند
-        function updateTrend(elementId, change) {
-            const element = document.getElementById(elementId);
-            const absChange = Math.abs(change).toFixed(2);
-            
-            if (change > 0.1) {
-                element.className = 'trend up';
-                element.innerHTML = `<i class="fas fa-arrow-up"></i> ${absChange}`;
-            } else if (change < -0.1) {
-                element.className = 'trend down';
-                element.innerHTML = `<i class="fas fa-arrow-down"></i> ${absChange}`;
-            } else {
-                element.className = 'trend stable';
-                element.innerHTML = `<i class="fas fa-equals"></i> ثابت`;
-            }
-        }
-        
-        // ایجاد نمودار
-        function updateChart() {
-            const ctx = document.getElementById('sensorChart').getContext('2d');
-            
-            if (chart) chart.destroy();
-            
-            if (sensorData.length === 0) return;
-            
-            const labels = sensorData.map((d, i) => {
-                const date = new Date(d.timestamp * 1000);
-                return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+            // مرتب کردن از جدید به قدیم
+            sensorData.sort((a, b) => {
+                if (a.id && b.id) return b.id - a.id;
+                if (a.unix_time && b.unix_time) return b.unix_time - a.unix_time;
+                return 0;
             });
             
-            const tempData = sensorData.map(d => d.temperature);
-            const humData = sensorData.map(d => d.humidity);
+            // آپدیت کارت‌ها
+            updateCards();
             
-            chart = new Chart(ctx, {
-                type: chartType,
+            // آپدیت نمودار
+            updateChart();
+            
+            // آپدیت جدول
+            updateTable();
+            
+            // آپدیت وضعیت
+            updateStatus();
+        }
+
+        // آپدیت کارت‌ها
+        function updateCards() {
+            const latest = sensorData[0];
+            
+            // مقادیر فعلی
+            document.getElementById('currentTemp').textContent = 
+                latest.temperature ? latest.temperature.toFixed(1) : '--';
+            document.getElementById('currentHum').textContent = 
+                latest.humidity ? latest.humidity.toFixed(1) : '--';
+            document.getElementById('lastDataTime').textContent = 
+                latest.timestamp || '--';
+            document.getElementById('dataCount').textContent = sensorData.length;
+            
+            // محاسبه min/max
+            const temps = sensorData.map(d => d.temperature).filter(t => t != null);
+            const hums = sensorData.map(d => d.humidity).filter(h => h != null);
+            
+            if (temps.length > 0) {
+                document.getElementById('maxTemp').textContent = Math.max(...temps).toFixed(1);
+                document.getElementById('minTemp').textContent = Math.min(...temps).toFixed(1);
+            }
+            
+            if (hums.length > 0) {
+                document.getElementById('maxHum').textContent = Math.max(...hums).toFixed(1);
+                document.getElementById('minHum').textContent = Math.min(...hums).toFixed(1);
+            }
+        }
+
+        // آپدیت نمودار
+        function updateChart() {
+            // فقط 20 داده آخر رو نشون بده
+            const recentData = sensorData.slice(0, 20).reverse();
+            
+            const labels = recentData.map(d => d.timestamp || `#${d.id}`);
+            const temps = recentData.map(d => d.temperature);
+            const hums = recentData.map(d => d.humidity);
+            
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            
+            if (sensorChart) {
+                sensorChart.destroy();
+            }
+            
+            sensorChart = new Chart(ctx, {
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: [
                         {
                             label: 'دما (°C)',
-                            data: tempData,
-                            borderColor: '#ff5252',
-                            backgroundColor: 'rgba(255, 82, 82, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4
+                            data: temps,
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            tension: 0.4,
+                            fill: true
                         },
                         {
                             label: 'رطوبت (%)',
-                            data: humData,
-                            borderColor: '#00c853',
-                            backgroundColor: 'rgba(0, 200, 83, 0.1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4
+                            data: hums,
+                            borderColor: '#4d96ff',
+                            backgroundColor: 'rgba(77, 150, 255, 0.1)',
+                            tension: 0.4,
+                            fill: true
                         }
                     ]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'top', rtl: true },
-                        tooltip: {
-                            rtl: true,
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}`;
-                                }
-                            }
+                        legend: {
+                            position: 'top',
+                            rtl: true
                         }
                     },
                     scales: {
-                        x: { ticks: { maxRotation: 45 } },
-                        y: { beginAtZero: false }
+                        x: {
+                            ticks: {
+                                maxRotation: 45
+                            }
+                        }
                     }
                 }
             });
         }
-        
-        // به‌روزرسانی جدول
+
+        // آپدیت جدول
         function updateTable() {
-            const tbody = document.getElementById('table-body');
+            const tbody = document.getElementById('dataTable');
             tbody.innerHTML = '';
             
-            sensorData.forEach((item, index) => {
-                const row = tbody.insertRow();
-                const date = new Date(item.timestamp * 1000);
-                const timeStr = `${date.getFullYear()}/${(date.getMonth()+1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            // فقط 10 داده آخر رو نشون بده
+            const displayData = sensorData.slice(0, 10);
+            
+            displayData.forEach(item => {
+                const row = document.createElement('tr');
+                
+                // رنگ‌بندی بر اساس دما
+                let tempColor = 'success';
+                if (item.temperature > 30) tempColor = 'danger';
+                else if (item.temperature > 25) tempColor = 'warning';
+                
+                // رنگ‌بندی بر اساس رطوبت
+                let humColor = 'success';
+                if (item.humidity > 80) humColor = 'danger';
+                else if (item.humidity > 60) humColor = 'warning';
                 
                 row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${timeStr}</td>
-                    <td style="color: #ff5252; font-weight: bold;">${item.temperature.toFixed(1)}°C</td>
-                    <td style="color: #00c853; font-weight: bold;">${item.humidity.toFixed(1)}%</td>
-                    <td><span style="background: #e3f2fd; padding: 5px 15px; border-radius: 20px;">${item.sensor}</span></td>
+                    <td>${item.id || '--'}</td>
+                    <td>${item.timestamp || '--'}</td>
                     <td>
-                        <button onclick="deleteData(${index})" style="background: #ff5252; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer;">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <span class="badge bg-${tempColor}">
+                            ${item.temperature ? item.temperature.toFixed(1) : '--'}°C
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-${humColor}">
+                            ${item.humidity ? item.humidity.toFixed(1) : '--'}%
+                        </span>
+                    </td>
+                    <td>${item.sensor || 'AHT20'}</td>
+                    <td>
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle"></i> ثبت شده
+                        </span>
                     </td>
                 `;
+                
+                tbody.appendChild(row);
             });
-            
-            document.getElementById('data-table').style.display = 'table';
         }
-        
-        // اضافه کردن داده تست
-        function addMockData() {
-            const lastData = sensorData.length > 0 ? sensorData[sensorData.length - 1] : null;
+
+        // آپدیت وضعیت
+        function updateStatus() {
+            const latest = sensorData[0];
+            if (!latest) return;
             
-            const newData = {
-                timestamp: Math.floor(Date.now() / 1000),
-                temperature: lastData ? 
-                    (lastData.temperature + (Math.random() - 0.5) * 0.5) : 
-                    (25 + Math.random() * 2),
-                humidity: lastData ? 
-                    (lastData.humidity + (Math.random() - 0.5) * 1) : 
-                    (60 + Math.random() * 5),
-                sensor: "AHT20"
-            };
+            const latestTime = latest.unix_time || 0;
+            const currentTime = Math.floor(Date.now() / 1000);
+            const isOnline = (currentTime - latestTime) < 300; // 5 دقیقه
             
-            newData.temperature = Math.round(newData.temperature * 10) / 10;
-            newData.humidity = Math.round(newData.humidity * 10) / 10;
-            
-            sensorData.push(newData);
-            
-            if (sensorData.length > CONFIG.maxDataPoints) {
-                sensorData = sensorData.slice(-CONFIG.maxDataPoints);
-            }
-            
-            updateUI();
-            updateChart();
-            updateTable();
-            checkSensorHealth();
-            
-            alert(`داده تست اضافه شد:\nدما: ${newData.temperature}°C\nرطوبت: ${newData.humidity}%`);
+            const statusEl = document.getElementById('deviceStatus');
+            statusEl.className = isOnline ? 'status-badge online' : 'status-badge offline';
+            statusEl.textContent = isOnline ? 'آنلاین' : 'آفلاین';
         }
+
+        // رویدادها
+        document.getElementById('refreshBtn').addEventListener('click', loadSensorData);
         
-        // حذف داده
-        function deleteData(index) {
-            if (confirm('آیا از حذف این رکورد مطمئنید؟')) {
-                sensorData.splice(index, 1);
-                updateUI();
-                updateChart();
-                updateTable();
-                checkSensorHealth();
-            }
-        }
+        // بارگذاری اولیه
+        loadSensorData();
         
-        // بازنشانی داده‌ها
-        function resetData() {
-            if (confirm('آیا از بازنشانی تمام داده‌ها مطمئنید؟')) {
-                sensorData = [];
-                lastTemp = null;
-                lastHum = null;
-                updateUI();
-                updateChart();
-                updateTable();
-                updateConnectionStatus(false, "بدون داده");
-                alert('✅ داده‌ها بازنشانی شدند');
-            }
-        }
-        
-        // تغییر نوع نمودار
-        function toggleChartType() {
-            chartType = chartType === 'line' ? 'bar' : 'line';
-            updateChart();
-        }
-        
-        // تغییر بازه به‌روزرسانی
-        function changeRefreshInterval(interval) {
-            clearInterval(refreshTimer);
-            CONFIG.refreshInterval = parseInt(interval);
-            
-            if (CONFIG.refreshInterval > 0) {
-                refreshTimer = setInterval(loadData, CONFIG.refreshInterval);
-                console.log(`🔄 بازه به‌روزرسانی به ${CONFIG.refreshInterval/1000} ثانیه تغییر کرد`);
-            }
-        }
-        
-        // استفاده از داده‌های نمونه
-        function useSampleData() {
-            const now = Math.floor(Date.now() / 1000);
-            
-            sensorData = [
-                { timestamp: now - 300, temperature: 25.3, humidity: 59.8, sensor: "AHT20" },
-                { timestamp: now - 240, temperature: 25.5, humidity: 60.1, sensor: "AHT20" },
-                { timestamp: now - 180, temperature: 25.7, humidity: 60.3, sensor: "AHT20" },
-                { timestamp: now - 120, temperature: 25.6, humidity: 60.0, sensor: "AHT20" },
-                { timestamp: now - 60, temperature: 25.4, humidity: 59.7, sensor: "AHT20" },
-                { timestamp: now, temperature: 25.2, humidity: 59.5, sensor: "AHT20" }
-            ];
-            
-            updateUI();
-            updateChart();
-            updateTable();
-            checkSensorHealth();
-            showError(false);
-        }
-        
-        // به‌روزرسانی زمان آخرین به‌روزرسانی
-        function updateLastUpdateTime() {
-            const now = new Date();
-            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-            
-            document.getElementById('last-update').textContent = timeStr;
-            document.getElementById('update-time-text').textContent = timeStr;
-        }
-        
-        // نمایش/پنهان کردن loading
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-            document.getElementById('data-table').style.display = show ? 'none' : 'table';
-        }
-        
-        // نمایش خطا
-        function showError(message) {
-            const errorEl = document.getElementById('error');
-            if (message) {
-                errorEl.style.display = 'block';
-                errorEl.innerHTML = `
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <div style="margin-top: 10px;">${message}</div>
-                `;
-            } else {
-                errorEl.style.display = 'none';
-            }
-        }
-        
-        // راه‌اندازی اولیه
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 داشبورد در حال راه‌اندازی...');
-            
-            // بارگذاری اولیه
-            loadData();
-            
-            // تنظیم تایمر
-            refreshTimer = setInterval(loadData, CONFIG.refreshInterval);
-            
-            // بررسی دوره‌ای سلامت سنسور
-            setInterval(checkSensorHealth, 5000);
-            
-            console.log('✅ داشبورد آماده است');
-        });
+        // رفرش خودکار هر 30 ثانیه
+        setInterval(loadSensorData, 30000);
     </script>
+
+    <!-- فونت فارسی -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet">
 </body>
 </html>
