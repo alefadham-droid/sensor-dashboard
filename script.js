@@ -1,7 +1,7 @@
 // 📥 دریافت داده‌ها از فایل JSON روی GitHub
 async function fetchData() {
   try {
-    const response = await fetch("sensor-data.json");
+    const response = await fetch("data/sensor-data.json");
     if (!response.ok) {
       throw new Error("خطا در دریافت داده‌ها: " + response.status);
     }
@@ -22,7 +22,6 @@ function renderData(data) {
     return;
   }
 
-  // نمایش آخرین رکوردها به ترتیب
   data.slice().reverse().forEach(item => {
     const timeString = new Date(item.timestamp * 1000).toLocaleString();
     const record = `
