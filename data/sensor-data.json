@@ -1,9 +1,9 @@
 [
   {
-    "timestamp": 355,
+    "timestamp": 391,
     "temperature": 20.1,
     "humidity": 41.6,
     "sensor": "AHT20",
-    "counter": 10
+    "counter": 11
   }
 ]
