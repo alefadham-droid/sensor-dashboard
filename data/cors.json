@@ -1,0 +1,10 @@
+{
+  "name": "sensor-dashboard",
+  "cors": {
+    "allowed_origins": ["https://alefadham-droid.github.io"],
+    "allowed_methods": ["GET", "OPTIONS"],
+    "allowed_headers": ["Content-Type", "Authorization"],
+    "max_age": 3600
+  },
+  "info": "CORS configuration for sensor dashboard"
+}
