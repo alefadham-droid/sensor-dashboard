@@ -1,280 +1,86 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>داشبورد Real-Time سنسور ESP32</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>📊 داشبورد سنسور ESP32</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --temp-color: #ff6b6b;
-            --hum-color: #4d96ff;
-            --success-color: #28a745;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-        }
-        
-        body {
-            font-family: 'Vazir', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 15px;
-        }
-        
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-        }
-        
-        .sensor-value {
-            font-size: 3.5rem;
-            font-weight: 900;
-            font-family: 'Vazir', 'Segoe UI', sans-serif;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .temp-card {
-            background: linear-gradient(135deg, var(--temp-color) 0%, #ff8e8e 100%);
-            color: white;
-        }
-        
-        .hum-card {
-            background: linear-gradient(135deg, var(--hum-color) 0%, #6bc5ff 100%);
-            color: white;
-        }
-        
-        .live-badge {
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            background: var(--danger-color);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            animation: pulse 1.5s infinite;
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-        
-        .data-stream {
-            max-height: 300px;
-            overflow-y: auto;
-            border-radius: 10px;
-            background: rgba(0,0,0,0.02);
-            padding: 10px;
-        }
-        
-        .data-item {
-            padding: 10px;
-            margin: 5px 0;
-            background: white;
-            border-radius: 8px;
-            border-left: 4px solid var(--temp-color);
-            transition: all 0.2s;
-        }
-        
-        .data-item:nth-child(even) {
-            border-left-color: var(--hum-color);
-        }
-        
-        .cors-info {
-            font-family: monospace;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #dee2e6;
-            font-size: 0.9rem;
-        }
+        body { font-family: Tahoma, sans-serif; background: #f8f9fa; padding: 15px; }
+        .card { border-radius: 10px; margin-bottom: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+        .temp-card { background: linear-gradient(135deg, #ff6b6b, #ffa8a8); color: white; }
+        .hum-card { background: linear-gradient(135deg, #4d96ff, #6bc5ff); color: white; }
+        .sensor-value { font-size: 3rem; font-weight: bold; }
+        .status-badge { font-size: 0.8rem; }
     </style>
 </head>
 <body>
 <div class="container">
     <!-- هدر -->
-    <div class="glass-card bg-primary text-white position-relative">
-        <span class="live-badge">LIVE</span>
+    <div class="card bg-primary text-white mb-3">
         <div class="card-body text-center">
-            <h1 class="display-6">
-                <i class="bi bi-lightning-charge-fill"></i> 
-                داشبورد Real-Time سنسور ESP32
-            </h1>
-            <p class="mb-2">داده‌های زنده از ESP32 + AHT20 با پشتیبانی CORS</p>
-            <div class="row justify-content-center">
-                <div class="col-auto">
-                    <span id="connectionStatus" class="badge bg-warning">
-                        <i class="bi bi-circle-fill"></i> در حال اتصال...
-                    </span>
-                </div>
-                <div class="col-auto">
-                    <span id="lastUpdate" class="badge bg-info">
-                        <i class="bi bi-clock"></i> 
-                        <span id="updateTime">--:--:--</span>
-                    </span>
-                </div>
+            <h1><i class="bi bi-graph-up"></i> داشبورد سنسور ESP32</h1>
+            <p>داده‌های Real-Time از ESP32 + AHT20</p>
+            <div class="status-badge">
+                <span id="status" class="badge bg-warning">در حال اتصال...</span>
+                <span id="lastUpdate" class="badge bg-info">آخرین آپدیت: --:--:--</span>
             </div>
         </div>
     </div>
 
     <!-- کارت‌های دما و رطوبت -->
-    <div class="row g-4">
-        <div class="col-lg-6">
-            <div class="glass-card temp-card">
-                <div class="card-body text-center py-4">
-                    <h4><i class="bi bi-thermometer-sun"></i> دمای فعلی</h4>
-                    <div class="sensor-value" id="currentTemp">--</div>
-                    <div class="mt-2">درجه سانتی‌گراد</div>
-                    <div class="mt-3">
-                        <small><i class="bi bi-arrow-repeat"></i> 
-                        <span id="tempUpdateRate">0</span> ثانیه پیش</small>
-                    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card temp-card">
+                <div class="card-body text-center">
+                    <h5><i class="bi bi-thermometer-half"></i> دمای فعلی</h5>
+                    <div class="sensor-value" id="tempValue">--</div>
+                    <div>درجه سانتی‌گراد</div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-lg-6">
-            <div class="glass-card hum-card">
-                <div class="card-body text-center py-4">
-                    <h4><i class="bi bi-droplet-half"></i> رطوبت فعلی</h4>
-                    <div class="sensor-value" id="currentHum">--</div>
-                    <div class="mt-2">درصد</div>
-                    <div class="mt-3">
-                        <small><i class="bi bi-arrow-repeat"></i> 
-                        <span id="humUpdateRate">0</span> ثانیه پیش</small>
-                    </div>
+        <div class="col-md-6 mb-3">
+            <div class="card hum-card">
+                <div class="card-body text-center">
+                    <h5><i class="bi bi-moisture"></i> رطوبت فعلی</h5>
+                    <div class="sensor-value" id="humValue">--</div>
+                    <div>درصد</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- کنترل‌ها -->
-    <div class="glass-card">
+    <!-- جدول داده‌ها -->
+    <div class="card mb-3">
         <div class="card-body">
-            <h5><i class="bi bi-sliders"></i> کنترل‌های Real-Time</h5>
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <label class="form-label">سرعت به‌روزرسانی</label>
-                    <select id="refreshRate" class="form-select">
-                        <option value="2000" selected>هر 2 ثانیه</option>
-                        <option value="5000">هر 5 ثانیه</option>
-                        <option value="10000">هر 10 ثانیه</option>
-                    </select>
-                </div>
-                <div class="col-md-6 text-center mt-3 mt-md-0">
-                    <div class="d-flex justify-content-center gap-2">
-                        <button id="connectBtn" class="btn btn-success">
-                            <i class="bi bi-plug"></i> اتصال
-                        </button>
-                        <button id="resetBtn" class="btn btn-warning">
-                            <i class="bi bi-arrow-clockwise"></i> بازنشانی
-                        </button>
-                    </div>
-                    <div class="mt-2">
-                        <span id="dataCount" class="badge bg-info">داده‌ها: 0</span>
-                        <span id="updateRate" class="badge bg-success ms-2">0/s</span>
-                    </div>
+            <h5><i class="bi bi-table"></i> آخرین داده‌ها</h5>
+            <div id="dataTable" class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">در حال بارگذاری...</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- نمودار و داده‌ها -->
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="glass-card">
-                <div class="card-body">
-                    <h5><i class="bi bi-graph-up-arrow"></i> نمودار Real-Time</h5>
-                    <div class="chart-container">
-                        <canvas id="sensorChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4">
-            <div class="glass-card h-100">
-                <div class="card-body">
-                    <h5><i class="bi bi-list-columns-reverse"></i> جریان داده‌ها</h5>
-                    <div class="data-stream" id="dataStream">
-                        <div class="text-center py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">در حال بارگذاری...</span>
-                            </div>
-                            <p class="mt-2">در انتظار دریافت داده...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- اطلاعات CORS -->
-    <div class="glass-card">
+    <!-- نمودار -->
+    <div class="card">
         <div class="card-body">
-            <h5><i class="bi bi-shield-check"></i> اطلاعات CORS</h5>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="cors-info">
-                        <div><strong>فایل تنظیمات:</strong> cors.json</div>
-                        <div><strong>Origin مجاز:</strong> https://alefadham-droid.github.io</div>
-                        <div><strong>متدها:</strong> GET, OPTIONS</div>
-                        <div><strong>Headers:</strong> Content-Type, Authorization</div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="cors-info">
-                        <div><strong>وضعیت اتصال:</strong> <span id="corsStatus" class="text-warning">در حال بررسی...</span></div>
-                        <div><strong>آخرین بررسی:</strong> <span id="corsCheckTime">--:--:--</span></div>
-                        <div><strong>فعال‌سازی CORS:</strong> <span id="corsEnabled" class="badge bg-success">فعال</span></div>
-                    </div>
-                </div>
-            </div>
+            <h5><i class="bi bi-bar-chart"></i> نمودار تغییرات</h5>
+            <canvas id="sensorChart" height="150"></canvas>
         </div>
     </div>
 
-    <!-- اطلاعات فنی -->
-    <div class="glass-card">
+    <!-- اطلاعات -->
+    <div class="card mt-3">
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <h6><i class="bi bi-info-circle"></i> اطلاعات فنی</h6>
-                    <table class="table table-sm">
-                        <tr><td>داده‌ها:</td><td id="techData">https://raw.githubusercontent.com/...</td></tr>
-                        <tr><td>CORS:</td><td id="techCors">https://raw.githubusercontent.com/...</td></tr>
-                        <tr><td>تعداد درخواست:</td><td id="requestCount">0</td></tr>
-                    </table>
-                </div>
-                <div class="col-md-6">
-                    <h6><i class="bi bi-activity"></i> وضعیت</h6>
-                    <table class="table table-sm">
-                        <tr><td>رکوردهای دریافتی:</td><td id="recordsReceived">0</td></tr>
-                        <tr><td>خطاها:</td><td id="errorCount">0</td></tr>
-                        <tr><td>مدت اجرا:</td><td id="uptime">00:00:00</td></tr>
-                    </table>
-                </div>
-            </div>
+            <small class="text-muted">
+                <i class="bi bi-info-circle"></i>
+                داده‌ها هر 30 ثانیه آپدیت می‌شوند | 
+                <span id="recordCount">0 رکورد</span> | 
+                <a href="https://github.com/alefadham-droid/sensor-dashboard" target="_blank">مخزن GitHub</a>
+            </small>
         </div>
     </div>
 </div>
@@ -282,182 +88,114 @@
 <script>
 class SensorDashboard {
     constructor() {
-        this.config = {
-            refreshRate: 2000,
-            chartHistory: 20,
-            dataUrl: 'https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/sensor-data.json',
-            corsUrl: 'https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/cors.json'
-        };
-        
-        this.state = {
-            dataHistory: [],
-            lastUpdate: null,
-            startTime: Date.now(),
-            requestCount: 0,
-            errorCount: 0,
-            recordsReceived: 0,
-            corsEnabled: false,
-            corsLastCheck: null
-        };
-        
+        this.dataUrl = 'https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/sensor-data.json';
+        this.data = [];
         this.chart = null;
-        this.interval = null;
+        this.updateInterval = null;
+        this.retryCount = 0;
         
         this.init();
     }
 
     init() {
         this.initChart();
-        this.setupEventListeners();
-        this.updateTechInfo();
-        this.checkCORS();
-        this.start();
-        this.startUptimeCounter();
-    }
-
-    setupEventListeners() {
-        document.getElementById('refreshRate').addEventListener('change', (e) => {
-            this.config.refreshRate = parseInt(e.target.value);
-            this.restart();
-        });
-
-        document.getElementById('connectBtn').addEventListener('click', () => {
-            if (this.interval) {
-                this.stop();
-                document.getElementById('connectBtn').innerHTML = '<i class="bi bi-plug"></i> اتصال';
-            } else {
-                this.start();
-                document.getElementById('connectBtn').innerHTML = '<i class="bi bi-plug-fill"></i> قطع';
-            }
-        });
-
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            this.resetData();
-        });
-    }
-
-    async start() {
-        this.updateStatus('connecting', 'در حال اتصال...');
-        await this.fetchData();
-        
-        this.interval = setInterval(async () => {
-            await this.fetchData();
-        }, this.config.refreshRate);
-        
-        this.updateStatus('connected', 'متصل');
-    }
-
-    stop() {
-        if (this.interval) {
-            clearInterval(this.interval);
-            this.interval = null;
-        }
-        this.updateStatus('disconnected', 'قطع');
-    }
-
-    restart() {
-        this.stop();
-        this.start();
+        this.startAutoUpdate();
+        this.updateStatus('🔵 در حال راه‌اندازی...', 'info');
     }
 
     async fetchData() {
-        this.state.requestCount++;
-        
         try {
             // اضافه کردن timestamp برای جلوگیری از کش
             const timestamp = Date.now();
-            const url = `${this.config.dataUrl}?t=${timestamp}`;
+            const url = `${this.dataUrl}?t=${timestamp}`;
             
-            const response = await fetch(url, {
-                method: 'GET',
-                mode: 'cors',
-                cache: 'no-cache',
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                }
-            });
+            const response = await fetch(url);
             
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
             
-            const data = await response.json();
-            this.state.recordsReceived += Array.isArray(data) ? data.length : 1;
+            const jsonData = await response.json();
             
-            this.processData(data);
-            this.state.errorCount = 0;
+            // پشتیبانی از هر دو فرمت (آرایه و تک رکورد)
+            const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
+            
+            this.processData(dataArray);
+            this.retryCount = 0;
+            this.updateStatus('🟢 متصل', 'success');
             
         } catch (error) {
             console.error('خطا در دریافت داده:', error);
-            this.state.errorCount++;
-            this.updateStatus('error', 'خطا در اتصال');
+            this.retryCount++;
+            
+            if (this.retryCount > 3) {
+                this.updateStatus('🔴 خطا در اتصال', 'danger');
+                this.showSampleData();
+            } else {
+                this.updateStatus('🟡 تلاش مجدد...', 'warning');
+            }
         }
     }
 
-    processData(data) {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('fa-IR');
-        this.state.lastUpdate = now;
+    processData(dataArray) {
+        if (!dataArray || dataArray.length === 0) return;
         
-        // تبدیل به آرایه اگر آبجکت تکی است
-        const dataArray = Array.isArray(data) ? data : [data];
+        // اضافه کردن به تاریخچه
+        this.data = [...this.data, ...dataArray].slice(-20);
         
-        // آپدیت مقادیر فعلی
-        if (dataArray.length > 0) {
-            const latest = dataArray[dataArray.length - 1];
-            
-            document.getElementById('currentTemp').textContent = latest.temperature?.toFixed(1) || '--';
-            document.getElementById('currentHum').textContent = latest.humidity?.toFixed(1) || '--';
-            
-            // محاسبه زمان گذشته
-            const timeAgo = Math.floor((Date.now() - now) / 1000);
-            document.getElementById('tempUpdateRate').textContent = timeAgo;
-            document.getElementById('humUpdateRate').textContent = timeAgo;
-        }
+        // آخرین رکورد
+        const latest = dataArray[dataArray.length - 1];
+        
+        // آپدیت مقادیر
+        document.getElementById('tempValue').textContent = 
+            latest.temperature?.toFixed(1) || '--';
+        document.getElementById('humValue').textContent = 
+            latest.humidity?.toFixed(1) || '--';
         
         // آپدیت زمان
-        document.getElementById('updateTime').textContent = timeString;
+        const now = new Date();
+        document.getElementById('lastUpdate').textContent = 
+            `آخرین آپدیت: ${now.toLocaleTimeString('fa-IR')}`;
         
-        // آپدیت تاریخچه
-        this.state.dataHistory = [...this.state.dataHistory, ...dataArray].slice(-100);
+        // آپدیت جدول
+        this.updateTable(dataArray.slice(-5).reverse());
         
-        // آپدیت UI
-        this.updateDataStream(dataArray);
+        // آپدیت نمودار
         this.updateChart();
-        this.updateCounters();
+        
+        // آپدیت شمارنده
+        document.getElementById('recordCount').textContent = 
+            `${this.data.length} رکورد`;
     }
 
-    updateDataStream(dataArray) {
-        const stream = document.getElementById('dataStream');
+    updateTable(dataArray) {
+        let html = `
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>زمان</th>
+                            <th>دما</th>
+                            <th>رطوبت</th>
+                            <th>ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
         
-        dataArray.slice(-5).reverse().forEach(item => {
-            const streamItem = document.createElement('div');
-            streamItem.className = 'data-item';
-            streamItem.innerHTML = `
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <i class="bi bi-thermometer-half"></i>
-                        <strong>${item.temperature?.toFixed(1) || '--'}°C</strong>
-                        <i class="bi bi-droplet-half ms-2"></i>
-                        <strong>${item.humidity?.toFixed(1) || '--'}%</strong>
-                    </div>
-                    <div class="text-muted">
-                        <small>${item.timestamp || '--:--:--'}</small>
-                    </div>
-                </div>
-                <div class="mt-1">
-                    <small class="text-muted">ID: ${item.id} | سنسور: ${item.sensor}</small>
-                </div>
+        dataArray.forEach(item => {
+            html += `
+                <tr>
+                    <td>${item.timestamp || '--:--:--'}</td>
+                    <td>${item.temperature?.toFixed(1) || '--'}°C</td>
+                    <td>${item.humidity?.toFixed(1) || '--'}%</td>
+                    <td><span class="badge bg-secondary">${item.id || '--'}</span></td>
+                </tr>
             `;
-            
-            stream.prepend(streamItem);
         });
         
-        // محدود کردن تعداد آیتم‌ها
-        const items = stream.querySelectorAll('.data-item');
-        if (items.length > 10) {
-            items[items.length - 1].remove();
-        }
+        html += '</tbody></table></div>';
+        document.getElementById('dataTable').innerHTML = html;
     }
 
     initChart() {
@@ -471,64 +209,39 @@ class SensorDashboard {
                     {
                         label: 'دما (°C)',
                         data: [],
-                        borderColor: 'rgb(255, 99, 132)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
                         borderWidth: 2,
                         fill: true,
-                        tension: 0.4,
-                        yAxisID: 'y'
+                        tension: 0.4
                     },
                     {
                         label: 'رطوبت (%)',
                         data: [],
-                        borderColor: 'rgb(54, 162, 235)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderColor: '#4d96ff',
+                        backgroundColor: 'rgba(77, 150, 255, 0.1)',
                         borderWidth: 2,
                         fill: true,
-                        tension: 0.4,
-                        yAxisID: 'y1'
+                        tension: 0.4
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: {
-                    duration: 0
-                },
                 scales: {
                     x: {
                         ticks: {
                             font: {
-                                family: 'Vazir, sans-serif',
-                                size: 10
+                                family: 'Tahoma, sans-serif'
                             }
                         }
                     },
                     y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        title: {
-                            display: true,
-                            text: 'دما (°C)',
+                        beginAtZero: false,
+                        ticks: {
                             font: {
-                                family: 'Vazir, sans-serif'
-                            }
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        grid: {
-                            drawOnChartArea: false
-                        },
-                        title: {
-                            display: true,
-                            text: 'رطوبت (%)',
-                            font: {
-                                family: 'Vazir, sans-serif'
+                                family: 'Tahoma, sans-serif'
                             }
                         }
                     }
@@ -537,7 +250,7 @@ class SensorDashboard {
                     legend: {
                         labels: {
                             font: {
-                                family: 'Vazir, sans-serif',
+                                family: 'Tahoma, sans-serif',
                                 size: 12
                             }
                         }
@@ -548,112 +261,97 @@ class SensorDashboard {
     }
 
     updateChart() {
-        const history = this.state.dataHistory.slice(-this.config.chartHistory);
-        const labels = history.map(d => d.timestamp?.split(':').slice(0, 2).join(':') || '--:--');
-        const temps = history.map(d => d.temperature || 0);
-        const hums = history.map(d => d.humidity || 0);
+        if (!this.chart || this.data.length === 0) return;
         
-        this.chart.data.labels = labels;
-        this.chart.data.datasets[0].data = temps;
-        this.chart.data.datasets[1].data = hums;
+        const chartData = this.data.slice(-15);
+        
+        this.chart.data.labels = chartData.map(d => 
+            d.timestamp?.split(':').slice(0, 2).join(':') || '--:--'
+        );
+        
+        this.chart.data.datasets[0].data = chartData.map(d => d.temperature || 0);
+        this.chart.data.datasets[1].data = chartData.map(d => d.humidity || 0);
+        
         this.chart.update('none');
     }
 
-    async checkCORS() {
-        try {
-            const response = await fetch(this.config.corsUrl);
-            if (response.ok) {
-                const corsConfig = await response.json();
-                this.state.corsEnabled = true;
-                this.state.corsLastCheck = new Date();
-                
-                document.getElementById('corsStatus').textContent = 'فعال';
-                document.getElementById('corsStatus').className = 'text-success';
-                document.getElementById('corsCheckTime').textContent = 
-                    this.state.corsLastCheck.toLocaleTimeString('fa-IR');
+    startAutoUpdate() {
+        // اول بارگیری کن
+        this.fetchData();
+        
+        // سپس هر 10 ثانیه آپدیت کن
+        this.updateInterval = setInterval(() => {
+            this.fetchData();
+        }, 10000);
+    }
+
+    updateStatus(text, type) {
+        const element = document.getElementById('status');
+        element.textContent = text;
+        element.className = `badge bg-${type}`;
+    }
+
+    showSampleData() {
+        const sampleData = [
+            {
+                id: this.data.length + 1,
+                timestamp: new Date().toLocaleTimeString('fa-IR').slice(0, 8),
+                temperature: 24.5,
+                humidity: 55.0,
+                sensor: "AHT20",
+                device: "ESP32"
             }
-        } catch (error) {
-            console.warn('خطا در بررسی CORS:', error);
-        }
+        ];
+        this.processData(sampleData);
+        document.getElementById('dataTable').innerHTML = 
+            '<div class="alert alert-warning">در حال نمایش داده نمونه (اتصال به سرور برقرار نشد)</div>' +
+            this.generateTableHTML(sampleData);
     }
 
-    updateStatus(status, text) {
-        const element = document.getElementById('connectionStatus');
+    generateTableHTML(dataArray) {
+        let html = `
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>زمان</th>
+                            <th>دما</th>
+                            <th>رطوبت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
         
-        element.innerHTML = `<i class="bi bi-circle-fill"></i> ${text}`;
-        element.className = 'badge bg-' + 
-            (status === 'connected' ? 'success' : 
-             status === 'connecting' ? 'warning' : 
-             status === 'error' ? 'danger' : 'secondary');
-    }
-
-    updateCounters() {
-        document.getElementById('dataCount').textContent = 
-            `داده‌ها: ${this.state.dataHistory.length}`;
-        
-        document.getElementById('updateRate').textContent = 
-            `${(1000 / this.config.refreshRate).toFixed(1)}/s`;
-        
-        document.getElementById('requestCount').textContent = this.state.requestCount;
-        document.getElementById('recordsReceived').textContent = this.state.recordsReceived;
-        document.getElementById('errorCount').textContent = this.state.errorCount;
-    }
-
-    updateTechInfo() {
-        document.getElementById('techData').textContent = this.config.dataUrl;
-        document.getElementById('techCors').textContent = this.config.corsUrl;
-    }
-
-    resetData() {
-        if (confirm('آیا می‌خواهید داده‌های محلی پاک شوند؟')) {
-            this.state.dataHistory = [];
-            document.getElementById('dataStream').innerHTML = `
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">در حال بارگذاری...</span>
-                    </div>
-                    <p class="mt-2">در انتظار دریافت داده...</p>
-                </div>
+        dataArray.forEach(item => {
+            html += `
+                <tr>
+                    <td>${item.timestamp || '--:--:--'}</td>
+                    <td>${item.temperature?.toFixed(1) || '--'}°C</td>
+                    <td>${item.humidity?.toFixed(1) || '--'}%</td>
+                </tr>
             `;
-            this.updateChart();
-            this.updateCounters();
-        }
-    }
-
-    startUptimeCounter() {
-        setInterval(() => {
-            const uptime = Date.now() - this.state.startTime;
-            const hours = Math.floor(uptime / 3600000);
-            const minutes = Math.floor((uptime % 3600000) / 60000);
-            const seconds = Math.floor((uptime % 60000) / 1000);
-            
-            document.getElementById('uptime').textContent = 
-                `${hours.toString().padStart(2, '0')}:` +
-                `${minutes.toString().padStart(2, '0')}:` +
-                `${seconds.toString().padStart(2, '0')}`;
-        }, 1000);
+        });
+        
+        html += '</tbody></table></div>';
+        return html;
     }
 }
 
-// راه‌اندازی داشبورد
+// راه‌اندازی هنگام بارگذاری صفحه
 document.addEventListener('DOMContentLoaded', () => {
     window.dashboard = new SensorDashboard();
     
-    // کلیدهای میانبر
+    // کلید R برای refresh دستی
     document.addEventListener('keydown', (e) => {
         if (e.key === 'r' || e.key === 'R') {
             dashboard.fetchData();
         }
-        if (e.key === ' ') {
-            e.preventDefault();
-            const btn = document.getElementById('connectBtn');
-            btn.click();
-        }
     });
+    
+    // اطلاعات کنسول
+    console.log('🚀 داشبورد سنسور ESP32 راه‌اندازی شد');
+    console.log('📊 داده‌ها: https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/sensor-data.json');
 });
 </script>
-
-<!-- فونت فارسی -->
-<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" />
 </body>
 </html>
