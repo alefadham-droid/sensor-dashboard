@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>داشبورد سنسور ESP32</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* استایل‌ها مشابه قبل */
         body {
             font-family: 'Vazir', sans-serif;
             background: #f5f7fa;
@@ -34,267 +33,294 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- هدر -->
-        <div class="card bg-primary text-white">
-            <div class="card-body text-center">
-                <h1><i class="bi bi-graph-up"></i> داشبورد سنسور ESP32</h1>
-                <p>داده‌های Real-Time از ESP32 + AHT20</p>
-                <div>
-                    <button id="refreshBtn" class="btn btn-light">
-                        <i class="bi bi-arrow-clockwise"></i> بروزرسانی
-                    </button>
-                    <span id="lastUpdate" class="ms-3">
-                        <i class="bi bi-clock"></i> در حال بارگذاری...
-                    </span>
+<div class="container">
+    <!-- هدر -->
+    <div class="card bg-primary text-white">
+        <div class="card-body text-center">
+            <h1><i class="bi bi-graph-up"></i> داشبورد سنسور ESP32</h1>
+            <p>داده‌های Real-Time از ESP32 + AHT20</p>
+        </div>
+    </div>
+
+    <!-- کارت‌های دما و رطوبت -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card temp-card">
+                <div class="card-body text-center">
+                    <h5><i class="bi bi-thermometer-half"></i> دمای فعلی</h5>
+                    <div class="sensor-value" id="currentTemp">--</div>
+                    <div>درجه سانتی‌گراد</div>
                 </div>
             </div>
         </div>
-
-        <!-- کارت‌ها -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card temp-card">
-                    <div class="card-body text-center">
-                        <h5><i class="bi bi-thermometer-half"></i> دمای فعلی</h5>
-                        <div class="sensor-value" id="currentTemp">--</div>
-                        <div>درجه سانتی‌گراد</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card hum-card">
-                    <div class="card-body text-center">
-                        <h5><i class="bi bi-moisture"></i> رطوبت فعلی</h5>
-                        <div class="sensor-value" id="currentHum">--</div>
-                        <div>درصد</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- جدول -->
-        <div class="card">
-            <div class="card-body">
-                <h5><i class="bi bi-table"></i> آخرین داده‌ها</h5>
-                <div id="dataTable" class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">در حال بارگذاری...</span>
-                    </div>
+        <div class="col-md-6">
+            <div class="card hum-card">
+                <div class="card-body text-center">
+                    <h5><i class="bi bi-moisture"></i> رطوبت فعلی</h5>
+                    <div class="sensor-value" id="currentHum">--</div>
+                    <div>درصد</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // ============ راه حل CORS ============
-        
-        // استفاده از CORS Proxy ساده
-        async function fetchWithCORSProxy(url) {
-            try {
-                // روش 1: استفاده از proxy آنلاین
-                const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-                
-                const response = await fetch(proxyUrl, {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`خطای شبکه: ${response.status}`);
-                }
-                
-                return await response.json();
-                
-            } catch (error) {
-                console.warn('خطا در proxy اول:', error);
-                
-                // روش 2: استفاده از proxy جایگزین
-                try {
-                    const proxyUrl2 = 'https://corsproxy.io/?' + encodeURIComponent(url);
-                    const response2 = await fetch(proxyUrl2);
-                    
-                    if (!response2.ok) {
-                        throw new Error(`خطای شبکه: ${response2.status}`);
-                    }
-                    
-                    return await response2.json();
-                    
-                } catch (error2) {
-                    console.warn('خطا در proxy دوم:', error2);
-                    
-                    // روش 3: استفاده از GitHub API مستقیم
-                    try {
-                        // اگر فایل در مخزن public است
-                        const apiUrl = 'https://api.github.com/repos/alefadham-droid/sensor-dashboard/contents/data/sensor-data.json';
-                        const response3 = await fetch(apiUrl);
-                        
-                        if (!response3.ok) {
-                            throw new Error(`خطای GitHub API: ${response3.status}`);
-                        }
-                        
-                        const data = await response3.json();
-                        // دیکد base64
-                        const content = atob(data.content.replace(/\n/g, ''));
-                        return JSON.parse(content);
-                        
-                    } catch (error3) {
-                        console.error('تمام روش‌ها شکست خورد:', error3);
-                        throw error3;
-                    }
-                }
-            }
-        }
-        
-        // تابع اصلی بارگذاری داده‌ها
-        async function loadSensorData() {
-            try {
-                console.log('📥 دریافت داده‌ها...');
-                
-                const dataUrl = 'https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/sensor-data.json';
-                
-                // استفاده از proxy برای حل مشکل CORS
-                const data = await fetchWithCORSProxy(dataUrl);
-                
-                console.log(`✅ داده‌ها دریافت شد (${Array.isArray(data) ? data.length : 'N/A'} رکورد)`);
-                
-                // پردازش داده‌ها
-                processData(data);
-                
-                // آپدیت زمان
-                updateLastUpdateTime();
-                
-            } catch (error) {
-                console.error('❌ خطا در بارگذاری داده‌ها:', error);
-                
-                // نمایش پیام خطا
-                document.getElementById('dataTable').innerHTML = `
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        خطا در دریافت داده‌ها
-                        <br>
-                        <small>${error.message}</small>
-                    </div>
-                `;
-                
-                // نمایش داده‌های نمونه برای تست
-                showSampleData();
-            }
-        }
-        
-        // نمایش داده‌های نمونه (برای زمانی که سرور در دسترس نیست)
-        function showSampleData() {
-            const sampleData = [
-                { id: 1, timestamp: "12:30:00", temperature: 25.5, humidity: 60.2 },
-                { id: 2, timestamp: "12:35:00", temperature: 25.7, humidity: 59.8 }
-            ];
-            
-            processData(sampleData);
-            
-            // نمایش هشدار
-            document.getElementById('dataTable').innerHTML = `
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i>
-                    در حال نمایش داده‌های نمونه (اتصال به سرور برقرار نشد)
+    <!-- جدول آخرین داده‌ها -->
+    <div class="card">
+        <div class="card-body">
+            <h5><i class="bi bi-table"></i> آخرین داده‌ها</h5>
+            <div id="dataTable" class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">در حال بارگذاری...</span>
                 </div>
-                ${generateTableHTML(sampleData)}
-            `;
-        }
-        
-        // پردازش داده‌ها
-        function processData(data) {
-            if (!Array.isArray(data) || data.length === 0) {
-                console.warn('داده‌ها نامعتبر یا خالی هستند');
-                document.getElementById('currentTemp').textContent = '--';
-                document.getElementById('currentHum').textContent = '--';
-                return;
-            }
-            
-            // آخرین داده
-            const latest = data[data.length - 1];
-            
-            // آپدیت مقادیر
-            if (latest.temperature !== undefined) {
-                document.getElementById('currentTemp').textContent = latest.temperature.toFixed(1);
-            }
-            
-            if (latest.humidity !== undefined) {
-                document.getElementById('currentHum').textContent = latest.humidity.toFixed(1);
-            }
-            
-            // آپدیت جدول
-            updateTable(data.slice(-10)); // 10 داده آخر
-        }
-        
-        // آپدیت جدول
-        function updateTable(data) {
-            let tableHTML = `
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>زمان</th>
-                            <th>دما (°C)</th>
-                            <th>رطوبت (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            // نمایش از جدید به قدیم
-            data.reverse().forEach(item => {
-                tableHTML += `
-                    <tr>
-                        <td>${item.id || '--'}</td>
-                        <td>${item.timestamp || '--:--:--'}</td>
-                        <td>${item.temperature ? item.temperature.toFixed(1) : '--'}</td>
-                        <td>${item.humidity ? item.humidity.toFixed(1) : '--'}</td>
-                    </tr>
-                `;
-            });
-            
-            tableHTML += '</tbody></table>';
-            
-            document.getElementById('dataTable').innerHTML = tableHTML;
-        }
-        
-        // آپدیت زمان
-        function updateLastUpdateTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('fa-IR');
-            document.getElementById('lastUpdate').innerHTML = 
-                `<i class="bi bi-clock"></i> آخرین بروزرسانی: ${timeStr}`;
-        }
-        
-        // ============ رویدادها ============
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 شروع سیستم...');
-            
-            // بارگذاری اولیه
-            loadSensorData();
-            
-            // Auto-Refresh هر 10 ثانیه
-            setInterval(loadSensorData, 10000);
-            
-            // دکمه رفرش
-            document.getElementById('refreshBtn').addEventListener('click', () => {
-                loadSensorData();
-            });
-        });
-        
-        // کلیدهای میانبر
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
-                e.preventDefault();
-                loadSensorData();
-            }
-        });
-        
-    </script>
+            </div>
+        </div>
+    </div>
 
-    <!-- فونت فارسی -->
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet">
+    <!-- نمودار دما و رطوبت -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5><i class="bi bi-bar-chart"></i> نمودار دما و رطوبت</h5>
+            <canvas id="sensorChart" height="150"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function fetchWithCORSProxy(url) {
+        try {
+            const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+            const response = await fetch(proxyUrl, { headers: { 'Accept': 'application/json' } });
+            if (!response.ok) throw new Error(`خطای شبکه: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.warn('خطا در proxy اول:', error);
+            try {
+                const proxyUrl2 = 'https://corsproxy.io/?' + encodeURIComponent(url);
+                const response2 = await fetch(proxyUrl2);
+                if (!response2.ok) throw new Error(`خطای شبکه: ${response2.status}`);
+                return await response2.json();
+            } catch (error2) {
+                console.warn('خطا در proxy دوم:', error2);
+                try {
+                    const apiUrl = 'https://api.github.com/repos/alefadham-droid/sensor-dashboard/contents/data/sensor-data.json';
+                    const response3 = await fetch(apiUrl);
+                    if (!response3.ok) throw new Error(`خطای GitHub API: ${response3.status}`);
+                    const data = await response3.json();
+                    const content = atob(data.content.replace(/\n/g, ''));
+                    return JSON.parse(content);
+                } catch (error3) {
+                    console.error('تمام روش‌ها شکست خورد:', error3);
+                    throw error3;
+                }
+            }
+        }
+    }
+
+    async function loadSensorData() {
+        try {
+            console.log('📥 دریافت داده‌ها...');
+            const dataUrl = 'https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/sensor-data.json';
+            const data = await fetchWithCORSProxy(dataUrl);
+            console.log(`✅ داده‌ها دریافت شد (${Array.isArray(data) ? data.length : 'N/A'} رکورد)`);
+            processData(data);
+        } catch (error) {
+            console.error('❌ خطا در بارگذاری داده‌ها:', error);
+            document.getElementById('dataTable').innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    خطا در دریافت داده‌ها
+                    <br>
+                    <small>${error.message}</small>
+                </div>
+            `;
+            showSampleData();
+        }
+    }
+
+    function showSampleData() {
+        const sampleData = [
+            { id: 1, timestamp: "12:30:00", temperature: 25.5, humidity: 60.2 },
+            { id: 2, timestamp: "12:35:00", temperature: 25.7, humidity: 59.8 }
+        ];
+        processData(sampleData);
+        document.getElementById('dataTable').innerHTML = `
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                در حال نمایش داده‌های نمونه (اتصال به سرور برقرار نشد)
+            </div>
+            ${generateTableHTML(sampleData)}
+        `;
+    }
+
+    let sensorChart; // متغیر نمودار
+
+    function renderChart(data) {
+        const ctx = document.getElementById('sensorChart').getContext('2d');
+        const lastData = data.slice(-10);
+        const labels = lastData.map(item => item.timestamp || '');
+        const temps = lastData.map(item => item.temperature ?? 0);
+        const hums = lastData.map(item => item.humidity ?? 0);
+
+        if (sensorChart) {
+            sensorChart.data.labels = labels;
+            sensorChart.data.datasets[0].data = temps;
+            sensorChart.data.datasets[1].data = hums;
+            sensorChart.update();
+        } else {
+            sensorChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'دما (°C)',
+                            data: temps,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: true,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'رطوبت (%)',
+                            data: hums,
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: true,
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    stacked: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'دما (°C)'
+                            },
+                            min: 0
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            title: {
+                                display: true,
+                                text: 'رطوبت (%)'
+                            },
+                            min: 0
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { font: { family: 'Vazir, sans-serif' } }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function processData(data) {
+        if (!Array.isArray(data) || data.length === 0) {
+            console.warn('داده‌ها نامعتبر یا خالی هستند');
+            document.getElementById('currentTemp').textContent = '--';
+            document.getElementById('currentHum').textContent = '--';
+            return;
+        }
+
+        const latest = data[data.length - 1];
+
+        if (latest.temperature !== undefined) {
+            document.getElementById('currentTemp').textContent = latest.temperature.toFixed(1);
+        }
+
+        if (latest.humidity !== undefined) {
+            document.getElementById('currentHum').textContent = latest.humidity.toFixed(1);
+        }
+
+        updateTable(data.slice(-10));
+
+        renderChart(data.slice(-10));
+    }
+
+    function updateTable(data) {
+        let tableHTML = `
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>زمان</th>
+                        <th>دما (°C)</th>
+                        <th>رطوبت (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        data.reverse().forEach(item => {
+            tableHTML += `
+                <tr>
+                    <td>${item.id || '--'}</td>
+                    <td>${item.timestamp || '--:--:--'}</td>
+                    <td>${item.temperature !== undefined ? item.temperature.toFixed(1) : '--'}</td>
+                    <td>${item.humidity !== undefined ? item.humidity.toFixed(1) : '--'}</td>
+                </tr>
+            `;
+        });
+
+        tableHTML += '</tbody></table>';
+
+        document.getElementById('dataTable').innerHTML = tableHTML;
+    }
+
+    function generateTableHTML(data) {
+        let html = `
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>زمان</th>
+                        <th>دما (°C)</th>
+                        <th>رطوبت (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        data.reverse().forEach(item => {
+            html += `
+                <tr>
+                    <td>${item.id || '--'}</td>
+                    <td>${item.timestamp || '--:--:--'}</td>
+                    <td>${item.temperature !== undefined ? item.temperature.toFixed(1) : '--'}</td>
+                    <td>${item.humidity !== undefined ? item.humidity.toFixed(1) : '--'}</td>
+                </tr>
+            `;
+        });
+        html += '</tbody></table>';
+        return html;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 شروع سیستم...');
+        loadSensorData();
+    });
+</script>
+
+<!-- فونت فارسی -->
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" />
 </body>
 </html>
