@@ -5,124 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>📊 داشبورد سنسور ESP32</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { 
-            font-family: Tahoma, sans-serif; 
-            background: #f8f9fa; 
-            padding: 15px;
-        }
-        .card { 
-            border-radius: 10px; 
-            margin-bottom: 15px; 
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
-        .temp-card { 
-            background: linear-gradient(135deg, #ff6b6b, #ffa8a8); 
-            color: white; 
-        }
-        .hum-card { 
-            background: linear-gradient(135deg, #4d96ff, #6bc5ff); 
-            color: white; 
-        }
-        .sensor-value { 
-            font-size: 3rem; 
-            font-weight: bold; 
-        }
+        body { font-family: Tahoma; padding: 20px; background: #f5f7fa; }
+        .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .value { font-size: 48px; font-weight: bold; }
+        .temp { color: #ff6b6b; }
+        .hum { color: #4d96ff; }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- هدر ساده -->
-    <div class="card bg-primary text-white mb-3">
-        <div class="card-body text-center">
-            <h4><i class="bi bi-graph-up"></i> داشبورد سنسور ESP32</h4>
-            <p>داده‌های Real-Time از ESP32</p>
-            <div>
-                <span id="status" class="badge bg-warning">در حال اتصال...</span>
-                <span id="updateTime" class="badge bg-info ms-2">--:--:--</span>
-            </div>
+    <div class="card text-center mb-4">
+        <h1>📊 داشبورد سنسور ESP32</h1>
+        <p>داده‌های Real-Time از ESP32 + AHT20</p>
+        <div>
+            <span id="status" class="badge bg-warning">در حال اتصال...</span>
+            <span id="updateTime" class="badge bg-info ms-2">--:--:--</span>
         </div>
     </div>
 
-    <!-- کارت‌های دما و رطوبت -->
     <div class="row">
-        <div class="col-md-6 mb-3">
-            <div class="card temp-card">
-                <div class="card-body text-center">
-                    <h5><i class="bi bi-thermometer-half"></i> دمای فعلی</h5>
-                    <div class="sensor-value" id="tempValue">--</div>
-                    <div>درجه سانتی‌گراد</div>
-                </div>
+        <div class="col-md-6">
+            <div class="card text-center">
+                <h3><span style="color: #ff6b6b">🌡️</span> دمای فعلی</h3>
+                <div class="value temp" id="tempValue">--</div>
+                <p>درجه سانتی‌گراد</p>
             </div>
         </div>
-        <div class="col-md-6 mb-3">
-            <div class="card hum-card">
-                <div class="card-body text-center">
-                    <h5><i class="bi bi-moisture"></i> رطوبت فعلی</h5>
-                    <div class="sensor-value" id="humValue">--</div>
-                    <div>درصد</div>
-                </div>
+        <div class="col-md-6">
+            <div class="card text-center">
+                <h3><span style="color: #4d96ff">💧</span> رطوبت فعلی</h3>
+                <div class="value hum" id="humValue">--</div>
+                <p>درصد</p>
             </div>
         </div>
     </div>
 
-    <!-- جدول داده‌ها -->
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5><i class="bi bi-table"></i> آخرین داده‌ها</h5>
-            <div id="dataTable">
-                <div class="text-center py-3">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-2">در حال بارگذاری...</p>
-                </div>
-            </div>
+    <div class="card mt-4">
+        <h4>📋 آخرین داده‌ها</h4>
+        <div id="dataTable">
+            <p class="text-center">در حال بارگذاری...</p>
         </div>
     </div>
 
-    <!-- اطلاعات پایین -->
-    <div class="card">
-        <div class="card-body text-center">
-            <small class="text-muted">
-                <span id="recordInfo">0 رکورد</span> | 
-                <a href="https://github.com/alefadham-droid/sensor-dashboard" target="_blank">
-                    <i class="bi bi-github"></i> مخزن GitHub
-                </a>
-            </small>
-        </div>
+    <div class="card mt-3">
+        <h4>📈 نمودار تغییرات دما</h4>
+        <canvas id="sensorChart" height="100"></canvas>
+    </div>
+
+    <div class="card mt-3 text-center">
+        <small class="text-muted">
+            داده‌ها هر ۱۰ ثانیه آپدیت می‌شوند | 
+            <span id="recordCount">۰ رکورد</span> | 
+            <button id="refreshBtn" class="btn btn-sm btn-primary">🔄 بارگذاری مجدد</button>
+        </small>
     </div>
 </div>
 
 <script>
-// ============================================
-// کد ساده و بدون خطا
-// ============================================
-
+// ==================== سیستم فوق‌ساده ====================
 const DATA_URL = 'https://raw.githubusercontent.com/alefadham-droid/sensor-dashboard/main/data/sensor-data.json';
-
-// متغیرهای سیستم
 let dataHistory = [];
-let totalRecords = 0;
-let isConnected = true;
-let updateInterval = null;
+let chart = null;
 
-// شروع سیستم
-console.log('🚀 شروع سیستم داشبورد...');
+// تابع امن برای گرفتن المان
+function getElement(id) {
+    const el = document.getElementById(id);
+    if (!el) {
+        console.warn(`⚠️ المان ${id} پیدا نشد`);
+    }
+    return el;
+}
 
-// تابع اصلی دریافت داده
-async function fetchSensorData() {
+// نمایش وضعیت
+function updateStatus(text, type) {
+    const statusEl = getElement('status');
+    if (statusEl) {
+        statusEl.textContent = text;
+        statusEl.className = `badge bg-${type}`;
+    }
+}
+
+// آپدیت زمان
+function updateTime() {
+    const timeEl = getElement('updateTime');
+    if (timeEl) {
+        timeEl.textContent = new Date().toLocaleTimeString('fa-IR');
+    }
+}
+
+// آپدیت آمار
+function updateStats() {
+    const recordEl = getElement('recordCount');
+    if (recordEl) {
+        recordEl.textContent = dataHistory.length + ' رکورد';
+    }
+}
+
+// دریافت داده
+async function fetchData() {
     console.log('🔄 دریافت داده...');
     
     try {
-        const timestamp = Date.now();
-        const url = `${DATA_URL}?t=${timestamp}`;
-        
+        const url = DATA_URL + '?t=' + Date.now();
         const response = await fetch(url);
-        console.log('📡 وضعیت HTTP:', response.status);
         
         if (!response.ok) {
-            throw new Error(`خطای HTTP: ${response.status}`);
+            throw new Error(`HTTP ${response.status}`);
         }
         
         const data = await response.json();
@@ -132,181 +121,164 @@ async function fetchSensorData() {
         updateStatus('متصل', 'success');
         
     } catch (error) {
-        console.error('❌ خطا در دریافت:', error.message);
+        console.error('❌ خطا:', error);
         updateStatus('خطا در اتصال', 'danger');
     }
 }
 
 // پردازش داده
 function processData(rawData) {
-    try {
-        // تبدیل به آرایه
-        const dataArray = Array.isArray(rawData) ? rawData : [rawData];
-        console.log(`📊 ${dataArray.length} رکورد دریافت شد`);
-        
-        if (dataArray.length === 0) {
-            console.warn('⚠️ داده‌ای موجود نیست');
-            return;
-        }
-        
-        // اضافه به تاریخچه (بدون تکرار)
-        dataArray.forEach(newItem => {
-            const exists = dataHistory.some(item => item.id === newItem.id);
-            if (!exists) {
-                dataHistory.push(newItem);
-                totalRecords++;
-            }
-        });
-        
-        // محدود کردن تاریخچه
-        if (dataHistory.length > 50) {
-            dataHistory = dataHistory.slice(-50);
-        }
-        
-        // آخرین رکورد
-        const latest = dataArray[dataArray.length - 1];
-        console.log('📍 آخرین رکورد:', latest);
-        
-        // آپدیت UI
-        updateUI(latest);
-        updateTable();
-        updateStats();
-        
-    } catch (error) {
-        console.error('❌ خطا در پردازش داده:', error);
+    // تبدیل به آرایه
+    const dataArray = Array.isArray(rawData) ? rawData : [rawData];
+    
+    if (dataArray.length === 0) {
+        console.warn('⚠️ داده‌ای موجود نیست');
+        return;
     }
+    
+    // اضافه به تاریخچه
+    dataArray.forEach(item => {
+        const exists = dataHistory.some(d => d.id === item.id);
+        if (!exists) {
+            dataHistory.push(item);
+        }
+    });
+    
+    // محدود کردن تاریخچه
+    if (dataHistory.length > 50) {
+        dataHistory = dataHistory.slice(-50);
+    }
+    
+    // آخرین رکورد
+    const latest = dataArray[dataArray.length - 1];
+    console.log('📍 آخرین:', latest);
+    
+    // آپدیت UI
+    updateUI(latest);
+    updateTable();
+    updateChart();
+    updateStats();
+    updateTime();
 }
 
 // آپدیت UI
 function updateUI(latest) {
-    try {
-        // دما
-        const tempElement = document.getElementById('tempValue');
-        if (tempElement && latest.temperature !== undefined) {
-            tempElement.textContent = latest.temperature.toFixed(1);
-        }
-        
-        // رطوبت
-        const humElement = document.getElementById('humValue');
-        if (humElement && latest.humidity !== undefined) {
-            humElement.textContent = latest.humidity.toFixed(1);
-        }
-        
-        // زمان
-        const timeElement = document.getElementById('updateTime');
-        if (timeElement) {
-            timeElement.textContent = new Date().toLocaleTimeString('fa-IR');
-        }
-        
-    } catch (error) {
-        console.error('❌ خطا در آپدیت UI:', error);
+    const tempEl = getElement('tempValue');
+    const humEl = getElement('humValue');
+    
+    if (tempEl && latest.temperature !== undefined) {
+        tempEl.textContent = latest.temperature.toFixed(1);
+    }
+    
+    if (humEl && latest.humidity !== undefined) {
+        humEl.textContent = latest.humidity.toFixed(1);
     }
 }
 
 // آپدیت جدول
 function updateTable() {
-    try {
-        const tableContainer = document.getElementById('dataTable');
-        if (!tableContainer) return;
-        
-        const recentData = dataHistory.slice(-5).reverse();
-        
-        if (recentData.length === 0) {
-            tableContainer.innerHTML = `
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i>
-                    هنوز داده‌ای دریافت نشده
-                </div>
-            `;
-            return;
-        }
-        
-        let html = '<table class="table table-sm"><thead><tr><th>زمان</th><th>دما</th><th>رطوبت</th></tr></thead><tbody>';
-        
-        recentData.forEach(item => {
-            html += `
-                <tr>
-                    <td>${item.timestamp || '--:--:--'}</td>
-                    <td>${item.temperature !== undefined ? item.temperature.toFixed(1) + '°C' : '--'}</td>
-                    <td>${item.humidity !== undefined ? item.humidity.toFixed(1) + '%' : '--'}</td>
-                </tr>
-            `;
-        });
-        
-        html += '</tbody></table>';
-        tableContainer.innerHTML = html;
-        
-    } catch (error) {
-        console.error('❌ خطا در آپدیت جدول:', error);
-    }
-}
-
-// آپدیت آمار
-function updateStats() {
-    try {
-        const recordElement = document.getElementById('recordInfo');
-        if (recordElement) {
-            recordElement.textContent = dataHistory.length + ' رکورد دریافت شده';
-        }
-    } catch (error) {
-        console.error('❌ خطا در آپدیت آمار:', error);
-    }
-}
-
-// آپدیت وضعیت
-function updateStatus(text, type) {
-    try {
-        const element = document.getElementById('status');
-        if (element) {
-            element.textContent = text;
-            element.className = `badge bg-${type}`;
-        }
-    } catch (error) {
-        console.error('❌ خطا در آپدیت وضعیت:', error);
-    }
-}
-
-// شروع آپدیت خودکار
-function startAutoUpdate() {
-    isConnected = true;
-    updateInterval = setInterval(fetchSensorData, 5000);
-    console.log('🔄 آپدیت خودکار فعال شد (هر ۵ ثانیه)');
-}
-
-// توقف آپدیت خودکار
-function stopAutoUpdate() {
-    isConnected = false;
-    if (updateInterval) {
-        clearInterval(updateInterval);
-        updateInterval = null;
-    }
-    console.log('⏹️ آپدیت خودکار متوقف شد');
-}
-
-// راه‌اندازی اولیه
-function initDashboard() {
-    console.log('🎯 راه‌اندازی داشبورد...');
-    console.log('📁 منبع داده:', DATA_URL);
+    const tableEl = getElement('dataTable');
+    if (!tableEl) return;
     
-    // بارگیری اولیه
-    fetchSensorData();
+    const recentData = dataHistory.slice(-5).reverse();
     
-    // شروع آپدیت خودکار
-    startAutoUpdate();
+    if (recentData.length === 0) {
+        tableEl.innerHTML = '<p class="text-center">داده‌ای موجود نیست</p>';
+        return;
+    }
     
-    // کلید R برای refresh دستی
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'r' || e.key === 'R') {
-            fetchSensorData();
-            console.log('🔄 بارگذاری دستی...');
-        }
+    let html = '<table class="table table-sm"><tr><th>زمان</th><th>دما</th><th>رطوبت</th></tr>';
+    
+    recentData.forEach(item => {
+        html += `
+            <tr>
+                <td>${item.timestamp || '--:--:--'}</td>
+                <td>${item.temperature?.toFixed(1) || '--'}°C</td>
+                <td>${item.humidity?.toFixed(1) || '--'}%</td>
+            </tr>
+        `;
     });
     
-    console.log('✅ سیستم آماده است!');
+    html += '</table>';
+    tableEl.innerHTML = html;
+}
+
+// راه‌اندازی نمودار
+function initChart() {
+    const canvas = getElement('sensorChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'دما (°C)',
+                data: [],
+                borderColor: '#ff6b6b',
+                backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        font: {
+                            family: 'Tahoma'
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// آپدیت نمودار
+function updateChart() {
+    if (!chart || dataHistory.length === 0) return;
+    
+    const temps = dataHistory.slice(-20).map(d => d.temperature || 0);
+    const labels = dataHistory.slice(-20).map((d, i) => i + 1);
+    
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = temps;
+    chart.update('none');
+}
+
+// شروع سیستم
+function init() {
+    console.log('🚀 سیستم شروع شد');
+    
+    initChart();
+    
+    // دکمه بارگذاری
+    const refreshBtn = getElement('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', fetchData);
+    }
+    
+    // اولین بارگیری
+    fetchData();
+    
+    // آپدیت خودکار هر ۱۰ ثانیه
+    setInterval(fetchData, 10000);
+    
+    // آپدیت زمان هر دقیقه
+    setInterval(updateTime, 60000);
 }
 
 // شروع هنگام بارگذاری صفحه
-document.addEventListener('DOMContentLoaded', initDashboard);
+document.addEventListener('DOMContentLoaded', init);
+
+// نمایش تمام IDها برای دیباگ
+console.log('🔍 بررسی المان‌های صفحه:');
+['status', 'updateTime', 'tempValue', 'humValue', 'dataTable', 'recordCount', 'refreshBtn', 'sensorChart'].forEach(id => {
+    const el = document.getElementById(id);
+    console.log(`  ${id}:`, el ? '✅ موجود' : '❌ یافت نشد');
+});
 </script>
 </body>
 </html>
